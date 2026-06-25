@@ -2,17 +2,1223 @@
 <html lang="ms">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AGMX — AGM Operating System. Platform SaaS mesyuarat AGM dengan AI Governance Copilot, e-voting kalis ubah, dan pematuhan Akta Koperasi 1993.">
-  <title>AGMX · AGM Operating System</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="AGMX — Platform SaaS tadbir urus koperasi Malaysia. AI Governance Copilot, e-voting kalis ubah, pematuhan Akta Koperasi 1993 & GP14.">
+  <meta name="theme-color" content="#0B5394">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AGMX">
+  <meta property="og:title" content="AGMX · AGM Operating System">
+  <meta property="og:description" content="Platform tadbir urus koperasi pintar. AI Copilot, e-voting, pematuhan automatik.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://agmx.vercel.app">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>AGMX · AGM Operating System — Tadbir Urus Koperasi Pintar</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B5394'/%3E%3Ctext x='50%25' y='52%25' text-anchor='middle' dominant-baseline='central' font-family='Arial' font-weight='800' font-size='28' fill='%23D4A017'%3EAG%3C/text%3E%3C/svg%3E">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preload" href="styles.css" as="style">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --c-primary: #0B5394;
+      --c-primary-600: #084375;
+      --c-primary-700: #063356;
+      --c-primary-800: #042444;
+      --c-primary-100: #E3F0FA;
+      --c-accent: #D4A017;
+      --c-accent-100: #FFF4D6;
+      --c-accent-600: #B8860B;
+      --c-success: #10B981;
+      --c-success-100: #D1FAE5;
+      --c-warning: #F59E0B;
+      --c-danger: #EF4444;
+      --c-bg: #F5F7FB;
+      --c-surface: #FFFFFF;
+      --c-border: #E5E9F0;
+      --c-text: #0F172A;
+      --c-text-2: #475569;
+      --c-text-3: #94A3B8;
+      --r-lg: 14px;
+      --r-xl: 20px;
+      --sh-md: 0 4px 12px rgba(15,23,42,0.08);
+      --sh-lg: 0 12px 36px rgba(15,23,42,0.12);
+      --sh-pop: 0 20px 60px rgba(15,23,42,0.18);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--c-text);
+      background: var(--c-bg);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: var(--c-primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600; font-size: 15px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--c-primary); color: #fff; box-shadow: 0 4px 14px rgba(11,83,148,0.3); }
+    .btn-primary:hover { background: var(--c-primary-600); box-shadow: 0 6px 20px rgba(11,83,148,0.4); }
+    .btn-accent { background: var(--c-accent); color: var(--c-primary-700); }
+    .btn-accent:hover { background: var(--c-accent-600); color: #fff; }
+    .btn-ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.3); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+    .btn-ghost-dark { background: transparent; color: var(--c-primary); border: 1.5px solid var(--c-border); }
+    .btn-ghost-dark:hover { background: var(--c-bg); border-color: var(--c-primary); }
+    .btn-lg { padding: 16px 32px; font-size: 17px; border-radius: 12px; }
+    .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+    }
+    .badge-primary { background: var(--c-primary-100); color: var(--c-primary); }
+    .badge-accent { background: var(--c-accent-100); color: var(--c-accent-600); }
+    .badge-success { background: var(--c-success-100); color: #047857; }
+
+    /* ========== NAV ========== */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--c-border);
+      transition: box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+    nav .container {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 20px; color: var(--c-text);
+    }
+    .nav-logo .mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--c-primary), var(--c-accent));
+      color: #fff; font-size: 14px;
+      border-radius: 9px;
+      display: grid; place-items: center;
+      font-weight: 800;
+    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      font-size: 14px; font-weight: 500; color: var(--c-text-2);
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a:hover { color: var(--c-primary); text-decoration: none; }
+    .nav-links a.active { color: var(--c-primary); }
+    .nav-links a.active::after {
+      content: ""; position: absolute; bottom: -4px; left: 0; right: 0;
+      height: 2px; background: var(--c-primary); border-radius: 1px;
+    }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+
+    /* Mobile nav overlay */
+    .mobile-toggle { display: none; background: none; border: none; cursor: pointer; padding: 8px; z-index: 101; }
+    .mobile-toggle span {
+      display: block; width: 24px; height: 2px; background: var(--c-text);
+      margin: 5px 0; border-radius: 2px;
+      transition: all 0.25s;
+    }
+    .mobile-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .mobile-toggle.open span:nth-child(2) { opacity: 0; }
+    .mobile-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+    .nav-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 99;
+      background: rgba(15,23,42,0.4);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .nav-overlay.show { opacity: 1; }
+
+    /* ========== HERO ========== */
+    .hero {
+      padding: 140px 0 80px;
+      background: linear-gradient(135deg, var(--c-primary-800) 0%, var(--c-primary) 50%, #1a6cb8 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: ""; position: absolute;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(212,160,23,0.12), transparent 60%);
+      top: -200px; right: -200px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: ""; position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,255,255,0.04), transparent 60%);
+      bottom: -150px; left: -100px;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero .container { position: relative; z-index: 1; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .hero-badge { margin-bottom: 20px; }
+    .hero h1 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+    .hero h1 .hl { color: var(--c-accent); }
+    .hero p {
+      font-size: 18px;
+      opacity: 0.88;
+      max-width: 520px;
+      margin-bottom: 32px;
+      line-height: 1.65;
+    }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-stats {
+      display: flex; gap: 32px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .hero-stat .hs-num { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .hero-stat .hs-label { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+
+    .hero-visual {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+    .hero-visual .mock-dash {
+      background: rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .mock-dash .md-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .mock-dash .md-row:last-child { border-bottom: 0; }
+    .md-label { font-size: 13px; opacity: 0.7; }
+    .md-value { font-size: 20px; font-weight: 800; }
+    .md-bar {
+      height: 8px; border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      margin: 6px 0 2px;
+      overflow: hidden;
+    }
+    .md-bar .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--c-accent), #FCD34D); }
+    .md-quorum { display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.8; }
+    .md-quorum .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c-success); animation: pulse 1.6s infinite; }
+
+    /* ========== SECTIONS ========== */
+    section { padding: 80px 0; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--c-primary);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 800; letter-spacing: -0.8px;
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .section-sub {
+      font-size: 17px; color: var(--c-text-2);
+      max-width: 600px;
+      line-height: 1.6;
+    }
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .section-head .section-sub { margin: 0 auto; }
+
+    /* ========== FEATURES ========== */
+    #features { background: var(--c-surface); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); background: var(--c-surface); }
+    .fc-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .fc-icon.c1 { background: var(--c-primary-100); color: var(--c-primary); }
+    .fc-icon.c2 { background: var(--c-accent-100); color: var(--c-accent-600); }
+    .fc-icon.c3 { background: var(--c-success-100); color: #047857; }
+    .fc-icon.c4 { background: #DBEAFE; color: #1E40AF; }
+    .fc-icon.c5 { background: #FEE2E2; color: #B91C1C; }
+    .fc-icon.c6 { background: #EDE9FE; color: #7C3AED; }
+    .feature-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 14px; color: var(--c-text-2); line-height: 1.6; }
+
+    /* ========== HOW IT WORKS ========== */
+    #how-it-works { background: var(--c-bg); }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .step-card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .step-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); }
+    .step-num {
+      width: 40px; height: 40px;
+      background: var(--c-primary);
+      color: #fff; font-weight: 800;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      margin: 0 auto 14px;
+      font-size: 16px;
+    }
+    .step-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .step-card p { font-size: 13.5px; color: var(--c-text-2); line-height: 1.5; }
+
+    /* ========== AI COPILOT ========== */
+    #ai-copilot { background: linear-gradient(135deg, var(--c-primary-800), var(--c-primary-700)); color: #fff; }
+    .ai-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    .ai-grid .section-sub { color: rgba(255,255,255,0.75); }
+    .ai-agents { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .ai-agent {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.3s;
+    }
+    .ai-agent:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    .ai-agent h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .ai-agent p { font-size: 13px; opacity: 0.75; line-height: 1.5; }
+
+    /* ========== COMPLIANCE ========== */
+    #compliance { background: var(--c-surface); }
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    .comp-list { display: flex; flex-direction: column; gap: 12px; }
+    .comp-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px;
+      background: var(--c-bg);
+      border-radius: 12px;
+      border-left: 4px solid var(--c-success);
+      transition: all 0.2s;
+    }
+    .comp-item:hover { background: var(--c-primary-100); border-left-color: var(--c-primary); }
+    .comp-item .ci-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--c-success-100); color: #047857; display: grid; place-items: center; font-weight: 700; flex-shrink: 0; }
+
+    /* ========== STATS BAR ========== */
+    #stats-bar {
+      background: linear-gradient(135deg, var(--c-primary), var(--c-primary-600));
+      color: #fff;
+      padding: 48px 0;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .stat-item .si-num { font-size: 40px; font-weight: 800; letter-spacing: -1px; }
+    .stat-item .si-label { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+
+    /* ========== TESTIMONIALS ========== */
+    #testimonials { background: var(--c-bg); }
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .testimonial-card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s;
+    }
+    .testimonial-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); }
+    .testimonial-card .quote {
+      font-size: 14px; color: var(--c-text-2); line-height: 1.6;
+      margin-bottom: 16px; font-style: italic;
+      position: relative;
+      padding-left: 20px;
+    }
+    .testimonial-card .quote::before {
+      content: """; position: absolute; left: 0; top: -4px;
+      font-size: 28px; color: var(--c-primary-100); font-style: normal;
+    }
+    .testimonial-card .author { display: flex; align-items: center; gap: 12px; }
+    .author-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--c-primary); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+    .author-name { font-weight: 700; font-size: 14px; }
+    .author-role { font-size: 12px; color: var(--c-text-3); }
+
+    /* ========== PRICING ========== */
+    #pricing { background: var(--c-surface); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .pricing-card {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); box-shadow: var(--sh-lg); }
+    .pricing-card.featured {
+      background: var(--c-surface);
+      border-color: var(--c-accent);
+      box-shadow: 0 0 0 2px var(--c-accent), var(--sh-lg);
+      transform: scale(1.05);
+    }
+    .pricing-card.featured:hover { transform: scale(1.05) translateY(-4px); }
+    .pricing-card.featured::before {
+      content: "Paling Popular"; position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--c-accent); color: var(--c-primary-700);
+      padding: 4px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .pc-name { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--c-primary); margin-bottom: 6px; }
+    .pc-price { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+    .pc-price span { font-size: 16px; font-weight: 500; color: var(--c-text-3); }
+    .pc-desc { font-size: 13px; color: var(--c-text-2); margin-bottom: 20px; }
+    .pc-features { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 8px; }
+    .pc-features li { font-size: 13.5px; color: var(--c-text-2); display: flex; align-items: center; gap: 8px; }
+    .pc-features li::before { content: "✓"; color: var(--c-success); font-weight: 700; }
+
+    /* ========== FAQ ========== */
+    #faq { background: var(--c-bg); }
+    .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .faq-item:hover { border-color: var(--c-primary); }
+    .faq-item.open { border-color: var(--c-primary); }
+    .faq-q {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px;
+      font-weight: 600; font-size: 15px;
+      gap: 12px;
+    }
+    .faq-arrow { transition: transform 0.3s; flex-shrink: 0; color: var(--c-text-3); }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); color: var(--c-primary); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.35s ease;
+      padding: 0 20px;
+      color: var(--c-text-2);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+      padding: 0 20px 18px;
+    }
+
+    /* ========== CTA ========== */
+    .cta {
+      padding: 80px 0;
+      background: linear-gradient(135deg, var(--c-primary-800), var(--c-primary));
+      color: #fff;
+      text-align: center;
+    }
+    .cta h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+    .cta p { font-size: 18px; opacity: 0.85; max-width: 540px; margin: 0 auto 32px; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ========== FOOTER ========== */
+    footer {
+      background: var(--c-primary-800);
+      color: rgba(255,255,255,0.7);
+      padding: 48px 0 32px;
+    }
+    footer .container {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+    footer h4 { color: #fff; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+    footer p, footer a { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.8; }
+    footer a:hover { color: var(--c-accent); text-decoration: none; }
+    .footer-brand .mark { width: 36px; height: 36px; background: var(--c-accent); color: var(--c-primary-700); border-radius: 9px; display: grid; place-items: center; font-weight: 800; font-size: 14px; margin-bottom: 12px; }
+    .footer-bottom {
+      grid-column: 1 / -1;
+      padding-top: 24px;
+      margin-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    /* ========== BACK TO TOP ========== */
+    .back-to-top {
+      position: fixed; bottom: 32px; right: 32px;
+      width: 48px; height: 48px;
+      background: var(--c-primary);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: grid; place-items: center;
+      box-shadow: var(--sh-lg);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      z-index: 50;
+    }
+    .back-to-top.show { opacity: 1; transform: translateY(0); }
+    .back-to-top:hover { background: var(--c-primary-600); transform: translateY(-4px); }
+
+    /* ========== ANIMATIONS ========== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.show { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 1024px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-card.featured { transform: none; }
+      .pricing-card.featured:hover { transform: translateY(-4px); }
+    }
+    @media (max-width: 900px) {
+      .hero-grid, .ai-grid, .comp-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .hero h1 { font-size: 36px; }
+      .section-title { font-size: 28px; }
+      .nav-links { display: none; }
+      .mobile-toggle { display: block; }
+      footer .container { grid-template-columns: 1fr 1fr; }
+      .hero-stats { gap: 20px; flex-wrap: wrap; }
+      .hero-visual { margin-top: 24px; }
+    }
+    @media (max-width: 600px) {
+      .features-grid, .pricing-grid, .steps-grid { grid-template-columns: 1fr; }
+      .hero { padding: 120px 0 60px; }
+      section { padding: 56px 0; }
+      footer .container { grid-template-columns: 1fr; }
+      .stat-item .si-num { font-size: 30px; }
+      .back-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
+    }
+  </style>
 </head>
 <body>
-  <div id="app" class="app"></div>
+  <a href="#features" class="skip-link">Langkau ke kandungan utama</a>
 
-  <!-- data + app -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <!-- Nav -->
+  <nav id="navbar">
+    <div class="container">
+      <a href="#" class="nav-logo">
+        <div class="mark">AG</div>
+        AGMX
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="#features">Fungsi</a>
+        <a href="#how-it-works">Cara Kerja</a>
+        <a href="#ai-copilot">AI Copilot</a>
+        <a href="#compliance">Pematuhan</a>
+        <a href="#pricing">Harga</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="nav-cta">
+        <a href="app.html" class="btn btn-primary btn-sm">Log Masuk</a>
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <div class="nav-overlay" id="nav-overlay"></div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="reveal show">
+          <div class="hero-badge">
+            <span class="badge badge-accent">Platform Tadbir Urus Koperasi No. 1 Malaysia</span>
+          </div>
+          <h1>Sistem Operasi<br><span class="hl">AGM</span> untuk Koperasi<br>Abad Ke-21</h1>
+          <p>AGMX mengubah cara koperasi Malaysia mengurus Mesyuarat Agung — dengan AI Governance Copilot, e-voting kalis ubah, dan pematuhan automatik Akta Koperasi 1993.</p>
+          <div class="hero-actions">
+            <a href="#features" class="btn btn-accent btn-lg">Teroka AGMX</a>
+            <a href="#pricing" class="btn btn-ghost btn-lg">Lihat Harga</a>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hs-num" data-count="1284">0</div>
+              <div class="hs-label">Ahli Koperasi Diurus</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hs-num" data-count="98">0</div>
+              <div class="hs-label">Skor Pematuhan</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hs-num" data-count="4">0</div>
+              <div class="hs-label">Ejen AI Aktif</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual reveal show reveal-delay-2 float">
+          <div style="font-size:13px;font-weight:700;margin-bottom:16px;opacity:0.8">Dewan AGM — Paparan Langsung</div>
+          <div class="mock-dash">
+            <div class="md-row">
+              <span class="md-label">Kuorum</span>
+              <span class="md-value" style="color:var(--c-accent)">31.4%</span>
+            </div>
+            <div class="md-bar"><div class="fill" style="width:31.4%"></div></div>
+            <div class="md-quorum" style="margin-bottom:14px"><span class="dot"></span> 403 / 1,284 hadir — Syarat minimum dipenuhi</div>
+            <div class="md-row">
+              <span class="md-label">Undian M-001 (Dividen 8%)</span>
+              <span class="md-value" style="color:var(--c-success)">248 YA</span>
+            </div>
+            <div style="display:flex;gap:8px;font-size:13px;opacity:0.7;margin-bottom:14px">47 Tidak · 18 Kecuali · 313 Jumlah</div>
+            <div class="md-row">
+              <span class="md-label">Sesi Aktif</span>
+              <span class="md-value" style="color:#3B82F6">AG-06</span>
+            </div>
+            <div style="font-size:13px;opacity:0.7;margin-top:4px">Pembahagian Dividen & Lebih Surplus · AI Copilot Aktif</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px;font-size:12px;opacity:0.6;flex-wrap:wrap">
+            <span>✅ Pematuhan Skor 98/100</span>
+            <span>·</span>
+            <span>🔒 Hash Chain 7,891 blok</span>
+            <span>·</span>
+            <span>🤖 4 ejen RAG</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-label">Fungsi Utama</div>
+        <h2 class="section-title">Segala yang koperasi anda perlukan</h2>
+        <p class="section-sub">Daripada pendaftaran ke mesyuarat agung, daripada usul ke undian — AGMX mengurus keseluruhan kitaran tadbir urus secara digital.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="fc-icon c1">📋</div>
+          <h3>Pengurusan AGM End-to-End</h3>
+          <p>Cipta, jadual, dan jalankan AGM dalam beberapa klik — notis, agenda, kuorum, minit, semuanya automatik.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="fc-icon c2">🗳️</div>
+          <h3>E-Voting Kalis Ubah</h3>
+          <p>Undian digital disulitkan AES-256 dengan rantai hash tidak boleh diubah. Keputusan automatik, tepat, dan telus.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="fc-icon c3">🤖</div>
+          <h3>AI Governance Copilot</h3>
+          <p>4 ejen AI khusus — Pengerusi, Setiausaha, Pematuhan, Pengurus Soalan — bekerja 24/7 untuk memastikan AGM patuh.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="fc-icon c4">🛡️</div>
+          <h3>Pematuhan Automatik</h3>
+          <p>Enjin BRule memastikan setiap langkah mematuhi Akta Koperasi 1993, GP14, GP14B, dan UUK koperasi anda.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="fc-icon c5">🧓</div>
+          <h3>Mod Warga Emas</h3>
+          <p>Antaramuka One Screen One Action dengan butang 60-80px, fon besar, dan teks kontras tinggi untuk ahli senior.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="fc-icon c6">🔗</div>
+          <h3>Digital Vault</h3>
+          <p>Lejar digital kalis ubah dengan jejak audit lengkap. Setiap undian, usul, dan keputusan direkod secara kekal.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-label">Cara Kerja</div>
+        <h2 class="section-title">AGM dalam 4 langkah mudah</h2>
+        <p class="section-sub">Dari persediaan ke pelaksanaan, AGMX memandu anda setiap langkah.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card reveal reveal-delay-1">
+          <div class="step-num">1</div>
+          <h3>Sediakan AGM</h3>
+          <p>Gunakan AGM Wizard untuk menetapkan tarikh, agenda, calon, dan notis. Semua dokumen dijana automatik.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-2">
+          <div class="step-num">2</div>
+          <h3>Pendaftaran & Kuorum</h3>
+          <p>Ahli daftar melalui QR, SMS OTP atau WhatsApp. Sistem sahkan kuorum secara langsung mengikut UUK.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-3">
+          <div class="step-num">3</div>
+          <h3>Jalankan AGM</h3>
+          <p>Dewan AGM maya dengan 5 layout. AI Copilot memantau perbahasan, usul, dan undian secara masa nyata.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-4">
+          <div class="step-num">4</div>
+          <h3>Minit & Tindakan</h3>
+          <p>Minit mesyuarat dijana AI. Tindakan susulan dijejak dengan PIC dan tarikh akhir. Semua direkod di Vault.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Copilot -->
+  <section id="ai-copilot">
+    <div class="container">
+      <div class="ai-grid">
+        <div class="reveal">
+          <div class="section-label" style="color:var(--c-accent)">AI Governance Copilot</div>
+          <h2 class="section-title" style="color:#fff">4 ejen AI menjaga<br>AGM anda</h2>
+          <p class="section-sub" style="margin-bottom:0">RAG-powered multi-agent system yang memahami dokumen koperasi, UUK, dan Akta Koperasi 1993 untuk memastikan tadbir urus yang sempurna.</p>
+        </div>
+        <div class="ai-agents">
+          <div class="ai-agent reveal reveal-delay-1">
+            <h4>👑 AI Pengerusi</h4>
+            <p>Mengingatkan prosedur, mengurus giliran, memantau masa perbahasan.</p>
+          </div>
+          <div class="ai-agent reveal reveal-delay-2">
+            <h4>📝 AI Setiausaha</h4>
+            <p>Merekod minit secara langsung dengan ketepatan 98% + draf auto.</p>
+          </div>
+          <div class="ai-agent reveal reveal-delay-3">
+            <h4>⚖️ AI Pematuhan</h4>
+            <p>Semak setiap usul terhadap Akta/GP14. Bendera pelanggaran automatik.</p>
+          </div>
+          <div class="ai-agent reveal reveal-delay-4">
+            <h4>📊 AI Pengurus Soalan</h4>
+            <p>Satukan soalan berulang, cadangkan jawapan ringkas, atur ikut keutamaan.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <section id="stats-bar">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <div class="si-num" data-count="1284">0</div>
+          <div class="si-label">Ahli Koperasi</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-1">
+          <div class="si-num" data-count="98">0<span style="font-size:20px">%</span></div>
+          <div class="si-label">Skor Pematuhan</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-2">
+          <div class="si-num" data-count="7891">0</div>
+          <div class="si-label">Blok Rantaian</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-3">
+          <div class="si-num" data-count="16">16</div>
+          <div class="si-label">AGM Berjaya</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compliance -->
+  <section id="compliance">
+    <div class="container">
+      <div class="comp-grid">
+        <div class="reveal">
+          <div class="section-label">Pematuhan Terbina</div>
+          <h2 class="section-title">Compliance-by-Design</h2>
+          <p class="section-sub" style="margin-bottom:24px">AGMX dibina dengan enjin pematuhan yang memastikan setiap AGM mematuhi keperluan perundangan Malaysia tanpa usaha manual.</p>
+          <div class="comp-list">
+            <div class="comp-item">
+              <div class="ci-icon">✓</div>
+              <div><strong>Akta Koperasi 1993</strong><br><span style="font-size:13px;color:var(--c-text-2)">Notis 21 hari (≥15 minimum), kuorum ≥25%, kelayakan undi</span></div>
+            </div>
+            <div class="comp-item">
+              <div class="ci-icon">✓</div>
+              <div><strong>GP14 & GP14B</strong><br><span style="font-size:13px;color:var(--c-text-2)">Garis panduan mesyuarat, pencadang & penyokong, tempoh perbahasan</span></div>
+            </div>
+            <div class="comp-item">
+              <div class="ci-icon">✓</div>
+              <div><strong>UUK Koperasi</strong><br><span style="font-size:13px;color:var(--c-text-2)">Undang-undang kecil khusus koperasi — auto-tapis & penguatkuasaan</span></div>
+            </div>
+            <div class="comp-item">
+              <div class="ci-icon">✓</div>
+              <div><strong>Rekod Kekal Kalis Ubah</strong><br><span style="font-size:13px;color:var(--c-text-2)">Immutable hash chain — setiap transaksi direkod, tidak boleh dipadam</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-2" style="background:var(--c-bg);border-radius:16px;padding:32px;text-align:center;border:1px solid var(--c-border)">
+          <div style="font-size:64px;font-weight:800;letter-spacing:-3px;background:linear-gradient(135deg,var(--c-primary),var(--c-success));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">98</div>
+          <div style="font-size:18px;font-weight:700;margin-bottom:8px">Skor Pematuhan</div>
+          <div style="font-size:14px;color:var(--c-text-2);margin-bottom:20px">daripada 100 · Auto-audit berterusan</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left">
+            <div style="padding:12px;background:var(--c-surface);border-radius:10px">
+              <div style="font-size:12px;color:var(--c-text-3)">Peraturan Dipatuhi</div>
+              <div style="font-size:20px;font-weight:800;color:var(--c-success)">6/6</div>
+            </div>
+            <div style="padding:12px;background:var(--c-surface);border-radius:10px">
+              <div style="font-size:12px;color:var(--c-text-3)">Amaran Aktif</div>
+              <div style="font-size:20px;font-weight:800;color:var(--c-warning)">1</div>
+            </div>
+            <div style="padding:12px;background:var(--c-surface);border-radius:10px">
+              <div style="font-size:12px;color:var(--c-text-3)">Blok Rantaian</div>
+              <div style="font-size:20px;font-weight:800;color:var(--c-primary)">7,891</div>
+            </div>
+            <div style="padding:12px;background:var(--c-surface);border-radius:10px">
+              <div style="font-size:12px;color:var(--c-text-3)">Sesi AGM</div>
+              <div style="font-size:20px;font-weight:800;color:var(--c-accent)">Ke-16</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-label">Testimoni</div>
+        <h2 class="section-title">Apa kata pengguna kami</h2>
+        <p class="section-sub">Koperasi di seluruh Malaysia telah beralih ke AGMX untuk tadbir urus yang lebih pintar.</p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card reveal reveal-delay-1">
+          <div class="quote">AGMX telah mengubah cara kami mengurus AGM. Daripada proses manual yang mengambil masa berminggu-minggu, kini semuanya selesai dalam satu hari. AI Copilot sangat membantu Setiausaha.</div>
+          <div class="author">
+            <div class="author-avatar">AR</div>
+            <div>
+              <div class="author-name">Pn. Aishah Rahman</div>
+              <div class="author-role">Setiausaha, KOPEMAJU</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-2">
+          <div class="quote">Skor pematuhan 98% membuktikan AGMX serius tentang Akta Koperasi 1993. Ahli lembaga kami rasa lebih yakin setiap langkah adalah sah di sisi undang-undang.</div>
+          <div class="author">
+            <div class="author-avatar">LC</div>
+            <div>
+              <div class="author-name">En. Lim Chong Wei</div>
+              <div class="author-role">Pengerusi, KOPEMAJU</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-3">
+          <div class="quote">Mod Warga Emas satu permainan yang mengubah! Ahli-ahli senior kami yang berumur 70+ boleh mengundi sendiri tanpa bantuan. Antaramuka yang ringkas dan jelas.</div>
+          <div class="author">
+            <div class="author-avatar">FI</div>
+            <div>
+              <div class="author-name">Pn. Fatimah Ismail</div>
+              <div class="author-role">Ahli Lembaga, KOPEMAJU</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-label">Harga</div>
+        <h2 class="section-title">Pelan untuk setiap koperasi</h2>
+        <p class="section-sub">Dari koperasi kecil hingga konglomerat — harga telus, tanpa kos tersembunyi.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="pricing-card reveal reveal-delay-1">
+          <div class="pc-name">Starter</div>
+          <div class="pc-price">RM 499<span>/bulan</span></div>
+          <div class="pc-desc">Untuk koperasi kecil dengan < 500 ahli</div>
+          <ul class="pc-features">
+            <li>Sehingga 500 ahli</li>
+            <li>1 AGM tahunan</li>
+            <li>E-Voting asas</li>
+            <li>Pematuhan automatik</li>
+            <li>AI Setiausaha</li>
+            <li>Digital Vault</li>
+          </ul>
+          <a href="#" class="btn btn-primary" style="width:100%;justify-content:center">Pilih Starter</a>
+        </div>
+        <div class="pricing-card featured reveal reveal-delay-2">
+          <div class="pc-name">Enterprise</div>
+          <div class="pc-price">RM 999<span>/bulan</span></div>
+          <div class="pc-desc">Untuk koperasi sederhana dengan < 2,000 ahli</div>
+          <ul class="pc-features">
+            <li>Sehingga 2,000 ahli</li>
+            <li>AGM tanpa had</li>
+            <li>E-Voting penuh + hash chain</li>
+            <li>AI Copilot (4 ejen)</li>
+            <li>Mod Warga Emas</li>
+            <li>CSV Import/Export</li>
+            <li>Pek Mesyuarat Digital</li>
+          </ul>
+          <a href="#" class="btn btn-accent" style="width:100%;justify-content:center">Pilih Enterprise</a>
+        </div>
+        <div class="pricing-card reveal reveal-delay-3">
+          <div class="pc-name">Platinum</div>
+          <div class="pc-price">RM 1,999<span>/bulan</span></div>
+          <div class="pc-desc">Untuk koperasi besar dengan < 5,000 ahli</div>
+          <ul class="pc-features">
+            <li>Sehingga 5,000 ahli</li>
+            <li>AGM tanpa had</li>
+            <li>AI Copilot + RAG penuh</li>
+            <li>Dewan AGM Hibrid</li>
+            <li>API Integrasi</li>
+            <li>Multi-bahasa (BM/EN/TA/ZH)</li>
+            <li>Onboarding terpandu</li>
+          </ul>
+          <a href="#" class="btn btn-primary" style="width:100%;justify-content:center">Pilih Platinum</a>
+        </div>
+        <div class="pricing-card reveal reveal-delay-4">
+          <div class="pc-name">Unlimited</div>
+          <div class="pc-price">RM 3,999<span>/bulan</span></div>
+          <div class="pc-desc">Untuk konglomerat & gabungan koperasi</div>
+          <ul class="pc-features">
+            <li>Ahli tidak terhad</li>
+            <li>Semua ciri Platinum</li>
+            <li>White-label branding</li>
+            <li>Dedicated account manager</li>
+            <li>99.9% SLA uptime</li>
+            <li>Keselamatan enterprise</li>
+            <li>Latihan khas pasukan</li>
+          </ul>
+          <a href="#" class="btn btn-primary" style="width:100%;justify-content:center">Hubungi Kami</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="section-label">Soalan Lazim</div>
+        <h2 class="section-title">Ada soalan? Kami ada jawapan.</h2>
+        <p class="section-sub">Segala yang anda perlu tahu tentang AGMX sebelum mendaftar.</p>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <div class="faq-q"><span>Apa itu AGMX?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">AGMX adalah platform SaaS tadbir urus koperasi yang mengurus keseluruhan kitaran Mesyuarat Agung Tahunan (AGM) — dari notis, pendaftaran, kuorum, perbahasan, undian, sehingga minit dan tindakan susulan. Dibina khas untuk mematuhi Akta Koperasi 1993, GP14, dan UUK.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-1">
+          <div class="faq-q"><span>Berapa lama masa untuk onboarding?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">Kebanyakan koperasi dapat beroperasi sepenuhnya dalam masa 24-48 jam. Pasukan kami akan membantu mengimport data ahli, menyediakan template AGM, dan melatih pentadbir. Proses ini percuma untuk semua pelan.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-2">
+          <div class="faq-q"><span>Bagaimana dengan keselamatan data?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">Keselamatan adalah keutamaan kami. Semua data disulitkan dengan AES-256 semasa rehat dan TLS 1.3 semasa penghantaran. Setiap undian dan keputusan direkod dalam immutable hash chain. Kami juga menyokong MFA, Passkey, dan Device Binding.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-3">
+          <div class="faq-q"><span>Adakah AGMX mematuhi undang-undang Malaysia?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">Ya. AGMX dibina dengan enjin pematuhan BRule yang memastikan setiap langkah AGM mematuhi Akta Koperasi 1993, GP14, GP14B, dan UUK koperasi anda. Skor pematuhan dipaparkan secara langsung dan diaudit secara automatik.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-4">
+          <div class="faq-q"><span>Bolehkah ahli senior/ warga emas gunakan sistem ini?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">Sudah tentu! AGMX mempunyai Mod Warga Emas dengan butang besar (60-80px), fon teks yang lebih besar, kontras tinggi, dan prinsip One Screen One Action. Ahli hanya perlu tekan satu butang untuk mengundi atau bertanya soalan.</div>
+        </div>
+        <div class="faq-item reveal reveal-delay-5">
+          <div class="faq-q"><span>Apakah perbezaan pelan?</span><span class="faq-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+          <div class="faq-a">Pelan berbeza berdasarkan bilangan ahli dan ciri-ciri. Starter untuk koperasi kecil (<500 ahli), Enterprise untuk sederhana (<2,000), Platinum untuk besar (<5,000), dan Unlimited untuk konglomerat. Semua pelan termasuk pematuhan automatik dan AI Copilot asas.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="container">
+      <div class="badge badge-success" style="margin-bottom:20px">🚀 Promosi Pelancaran — Percuma 30 Hari</div>
+      <h2>Bersedia untuk transformasi<br>tadbir urus koperasi anda?</h2>
+      <p>Mulakan hari ini. Tiada kad kredit diperlukan. Pasukan kami akan bantu onboarding dalam 24 jam.</p>
+      <div class="cta-actions">
+        <a href="#" class="btn btn-accent btn-lg">Mulakan Percubaan Percuma</a>
+        <a href="app.html" class="btn btn-ghost btn-lg">Log Masuk</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-brand">
+        <div class="mark">AG</div>
+        <div style="font-weight:700;color:#fff;font-size:18px;margin-bottom:4px">AGMX</div>
+        <p style="max-width:280px">Platform tadbir urus koperasi pintar. Memperkasa koperasi Malaysia dengan teknologi AI dan pematuhan automatik.</p>
+      </div>
+      <div>
+        <h4>Produk</h4>
+        <div><a href="#features">Fungsi</a></div>
+        <div><a href="#pricing">Harga</a></div>
+        <div><a href="#">Keselamatan</a></div>
+        <div><a href="#">API</a></div>
+      </div>
+      <div>
+        <h4>Syarikat</h4>
+        <div><a href="#">Tentang Kami</a></div>
+        <div><a href="#">Blog</a></div>
+        <div><a href="#">Kerjaya</a></div>
+        <div><a href="#">Hubungi</a></div>
+      </div>
+      <div>
+        <h4>Sumber</h4>
+        <div><a href="#">Dokumentasi</a></div>
+        <div><a href="#">Pusat Bantuan</a></div>
+        <div><a href="#">Status Sistem</a></div>
+        <div><a href="#">Syarat & Dasar</a></div>
+      </div>
+      <div class="footer-bottom">© 2026 AGMX. Hak Cipta Terpelihara. Dibina untuk koperasi Malaysia.</div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Kembali ke atas">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').catch(function(){});
+      });
+    }
+  </script>
+  <script>
+    (function() {
+      'use strict';
+
+      /* ---------- Mobile Toggle ---------- */
+      const toggle = document.getElementById('mobile-toggle');
+      const navLinks = document.getElementById('nav-links');
+      const overlay = document.getElementById('nav-overlay');
+      let menuOpen = false;
+
+      function openMenu() {
+        menuOpen = true;
+        toggle.classList.add('open');
+        navLinks.style.display = 'flex';
+        navLinks.style.flexDirection = 'column';
+        navLinks.style.position = 'fixed';
+        navLinks.style.top = '72px';
+        navLinks.style.left = '0';
+        navLinks.style.right = '0';
+        navLinks.style.background = 'rgba(255,255,255,0.98)';
+        navLinks.style.backdropFilter = 'blur(14px)';
+        navLinks.style.padding = '24px';
+        navLinks.style.borderBottom = '1px solid var(--c-border)';
+        navLinks.style.gap = '20px';
+        navLinks.style.zIndex = '100';
+        overlay.style.display = 'block';
+        setTimeout(function() { overlay.classList.add('show'); }, 10);
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMenu() {
+        menuOpen = false;
+        toggle.classList.remove('open');
+        navLinks.style.display = 'none';
+        overlay.classList.remove('show');
+        setTimeout(function() { overlay.style.display = 'none'; }, 300);
+        document.body.style.overflow = '';
+      }
+
+      toggle.addEventListener('click', function() {
+        menuOpen ? closeMenu() : openMenu();
+      });
+
+      overlay.addEventListener('click', closeMenu);
+
+      navLinks.querySelectorAll('a').forEach(function(a) {
+        a.addEventListener('click', closeMenu);
+      });
+
+      /* ---------- Nav scroll effect ---------- */
+      var navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        navbar.classList.toggle('scrolled', window.scrollY > 20);
+      });
+
+      /* ---------- Scroll Reveal ---------- */
+      var revealEls = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('show');
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        revealEls.forEach(function(el) { observer.observe(el); });
+      } else {
+        revealEls.forEach(function(el) { el.classList.add('show'); });
+      }
+
+      /* ---------- Counter Animation (deduplicated) ---------- */
+      var _animated = {};
+      function animateCounters(root, filter) {
+        var els = filter ? root.querySelectorAll(filter) : root.querySelectorAll('[data-count]');
+        els.forEach(function(el) {
+          var key = el.className + '-' + (el.dataset.count || '');
+          if (_animated[key]) return;
+          _animated[key] = true;
+          var target = parseInt(el.dataset.count, 10);
+          if (isNaN(target)) return;
+          var current = 0;
+          var step = Math.max(1, Math.floor(target / 40));
+          var timer = setInterval(function() {
+            current += step;
+            if (current >= target) { current = target; clearInterval(timer); }
+            el.textContent = target >= 1000 ? current.toLocaleString() : current;
+          }, 30);
+        });
+      }
+
+      /* Hero counters on page load */
+      setTimeout(function() {
+        animateCounters(document, '.hero-stat [data-count]');
+      }, 400);
+
+      /* Stats counters when section scrolls into view */
+      if ('IntersectionObserver' in window) {
+        var statsBar = document.getElementById('stats-bar');
+        if (statsBar) {
+          var statsObs = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                animateCounters(entry.target);
+                statsObs.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.3 });
+          statsObs.observe(statsBar);
+        }
+      } else {
+        animateCounters(document);
+      }
+
+      /* ---------- FAQ Accordion ---------- */
+      document.querySelectorAll('.faq-q').forEach(function(q) {
+        q.addEventListener('click', function() {
+          var item = this.parentElement;
+          var isOpen = item.classList.contains('open');
+          document.querySelectorAll('.faq-item.open').forEach(function(i) {
+            i.classList.remove('open');
+          });
+          if (!isOpen) item.classList.add('open');
+        });
+      });
+
+      /* ---------- Back to Top ---------- */
+      var backBtn = document.getElementById('back-to-top');
+      window.addEventListener('scroll', function() {
+        backBtn.classList.toggle('show', window.scrollY > 400);
+      });
+      backBtn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      /* ---------- Active nav link on scroll ---------- */
+      var sections = document.querySelectorAll('section[id]');
+      window.addEventListener('scroll', function() {
+        var scrollPos = window.scrollY + 150;
+        var currentId = '';
+        sections.forEach(function(s) {
+          if (s.offsetTop <= scrollPos && s.offsetTop + s.offsetHeight > scrollPos) {
+            currentId = s.id;
+          }
+        });
+        navLinks.querySelectorAll('a').forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + currentId);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>

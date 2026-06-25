@@ -16,16 +16,19 @@ AGMX is an enterprise SaaS platform that digitises Malaysian cooperative (kopera
 
 ```
 AGMX/
-├── index.html     # App shell
+├── index.html     # Public marketing landing page (entry point)
+├── app.html       # SPA application shell
 ├── styles.css     # Full design system (light + dark + high-contrast)
 ├── app.js         # SPA router + 9 view renderers + interactions
 ├── data.js        # Mock cooperative data (members, motions, AGM, audit log)
+├── vercel.json    # Vercel deployment config
+├── assets/        # Static assets
 └── README.md      # This file
 ```
 
 ## 🚀 How to run
 
-Open `index.html` in any modern browser — no build step required. All assets, icons, and data are inline.
+Open `index.html` for the marketing landing page, or `app.html` for the SPA application, in any modern browser — no build step required.
 
 For best experience use Chrome/Edge/Safari (latest).
 

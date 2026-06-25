@@ -6,16 +6,23 @@
 (function () {
   "use strict";
 
-  const D = window.MC_DATA;
-  const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const D = window.MC_DATA || {
+    cooperative: { id: "KPM-0000", name: "Koperasi", plan: "Enterprise", members: 0, quorumPct: 25, quorumRequired: 0, uukRef: "UUK/v1" },
+    currentUser: { id: "U-0000", name: "Pengguna", role: "Pentadbir", avatar: "PG", phone: "", email: "", language: "BM" },
+    members: [], agm: { id: "AGM-0000", title: "AGM", edition: "", date: "", time: "", venue: "", mode: "", status: "", startedAt: "", elapsed: "00:00", quorumPct: 0, quorumRequired: 0, quorumPresent: 0, totalMembers: 0, lateNoticeDays: 21, noticesSent: 0, noticesRead: 0, noticesOpened: 0 },
+    agenda: [], candidates: [], motions: [{ id: "M-000", title: "Menunggu data", status: "Draf", type: "Biasa", proposer: "-", seconder: "-", proposedAt: "-", votes: { ya: 0, tidak: 0, abstain: 0 }, discussion: [] }], questions: [], actions: [], auditLog: [], health: { activeSessions: 0, wsLatency: 0, bandwidth: 0 }, compliance: { score: 0, aktaChips: [] },
+    financialSummary: { revenue: "RM 0", netProfit: "RM 0", dividend: "0%", totalAssets: "RM 0", totalLiabilities: "RM 0", yoyProfit: "0%" },
+    languages: ["Bahasa Melayu", "English"],
+  };
+  const $ = (sel, root = document) => root?.querySelector(sel) || null;
+  const $$ = (sel, root = document) => root ? Array.from(root.querySelectorAll(sel)) : [];
 
   /* ---------- App State ---------- */
   const state = {
-    view: "login",             // current route
-    role: "secretary",         // secretary | chairman | member
+    view: "login",
+    role: "secretary",
     seniorMode: false,
-    theme: "default",          // default | hc | dark
+    theme: "default",
     lang: "BM",
     drawerOpen: false,
     chat: [],
@@ -39,7 +46,63 @@
     activeMotion: "M-001",
     copilotAgent: "chairman",
     aiDrawerOpen: false,
+    _intervals: [],
+    _listeners: [],
   };
+
+  function safeInterval(fn, ms) {
+    const id = setInterval(fn, ms);
+    state._intervals.push(id);
+    return id;
+  }
+
+  function clearAllIntervals() {
+    state._intervals.forEach(clearInterval);
+    state._intervals = [];
+  }
+
+  function safeAdd(el, event, fn) {
+    if (!el) return;
+    el.addEventListener(event, fn);
+    state._listeners.push({ el, event, fn });
+  }
+
+  function safeOn(els, event, fn) {
+    if (!els) return;
+    els.forEach(el => { if (el) { el.addEventListener(event, fn); state._listeners.push({ el, event, fn }); } });
+  }
+
+  function safeEl(id) { return document.getElementById(id); }
+
+  function safeRender(fn) {
+    try { fn(); } catch (e) {
+      console.error("[AGMX] Render error:", e);
+      const m = document.getElementById("main");
+      if (m) m.innerHTML = `<div class="fade-in" style="padding:40px;text-align:center"><div style="font-size:48px;margin-bottom:12px">⚠️</div><h2 style="font-size:20px;font-weight:800;margin-bottom:8px">Ralat Tidak Dijangka</h2><p style="color:var(--c-text-2)">Maaf, berlaku ralat semasa memaparkan halaman ini. Sila cuba semula.</p><button class="btn btn-primary mt-3" onclick="location.reload()">Muat Semula</button></div>`;
+    }
+  }
+
+  function showLoading() {
+    const main = $("#main");
+    if (!main) return;
+    main.innerHTML = `
+      <div class="loading-screen fade-in">
+        <div class="skeleton skeleton-card"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+          <div class="skeleton skeleton-block"></div>
+          <div class="skeleton skeleton-block"></div>
+          <div class="skeleton skeleton-block"></div>
+          <div class="skeleton skeleton-block"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+          <div class="skeleton skeleton-block" style="height:300px"></div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="skeleton skeleton-block" style="height:140px"></div>
+            <div class="skeleton skeleton-block" style="height:140px"></div>
+          </div>
+        </div>
+      </div>`;
+  }
 
   /* ============================================================
      ICONS (inline SVG)
@@ -218,19 +281,18 @@
   }
 
   function bindLayoutEvents() {
-    $$(".nav-item").forEach((el) => {
-      el.addEventListener("click", () => {
-        state.view = el.dataset.route;
-        render();
-      });
+    safeOn($$(".nav-item"), "click", (e) => {
+      state.view = e.currentTarget.dataset.route;
+      location.hash = "#/" + state.view;
+      render();
     });
-    $("#ai-toggle").addEventListener("click", () => toggleDrawer());
-    $("#drawer-close").addEventListener("click", () => toggleDrawer(false));
-    $("#theme-toggle").addEventListener("click", () => cycleTheme());
-    $("#senior-toggle").addEventListener("click", () => toggleSenior());
-    $("#notif-btn")?.addEventListener("click", (e) => { e.stopPropagation(); toggleNotif(); });
-    $("#profile-btn")?.addEventListener("click", (e) => { e.stopPropagation(); toggleProfile(); });
-    $("#search-btn")?.addEventListener("click", () => toggleSearch(true));
+    safeAdd($("#ai-toggle"), "click", () => toggleDrawer());
+    safeAdd($("#drawer-close"), "click", () => toggleDrawer(false));
+    safeAdd($("#theme-toggle"), "click", () => cycleTheme());
+    safeAdd($("#senior-toggle"), "click", () => toggleSenior());
+    safeAdd($("#notif-btn"), "click", (e) => { e.stopPropagation(); toggleNotif(); });
+    safeAdd($("#profile-btn"), "click", (e) => { e.stopPropagation(); toggleProfile(); });
+    safeAdd($("#search-btn"), "click", () => toggleSearch(true));
     document.addEventListener("click", closeAllDropdowns);
     document.addEventListener("keydown", handleGlobalKeys);
   }
@@ -417,8 +479,7 @@
     );
 
     $("#login-btn").addEventListener("click", () => {
-      state.view = "dashboard";
-      render();
+      navigate("dashboard");
       showToast("🔐 Log masuk berjaya. Selamat datang ke AGM Ke-16!");
     });
   }
@@ -499,7 +560,7 @@
                 <hr class="divider">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
                   <div style="font-weight:700">Senarai Agenda Aktif</div>
-                  <span class="text-sm text-3">${D.agenda.filter(a => a.status === "Selesai").length}/${D.agenda.length} selesai</span>
+                  <span class="text-sm text-3">${D.agenda.filter(a => a.status === "Selesai").length}/${D.agenda.length || "0"} selesai</span>
                 </div>
                 <div class="agenda-list">
                   ${D.agenda.slice(0, 5).map(a => `
@@ -598,8 +659,7 @@
 
     $$("[data-route]").forEach((b) =>
       b.addEventListener("click", () => {
-        state.view = b.dataset.route;
-        render();
+        navigate(b.dataset.route);
       })
     );
   }
@@ -637,7 +697,7 @@
         </div>
         ${status === "ready"
           ? `<button class="btn btn-sm btn-ghost">${ICONS.download}</button>`
-          : `<span class="badge ${stColor}"><span class="dot"></span> ${ICONS.spinner || ''}Menjana</span>`}
+          : `<span class="badge ${stColor}"><span class="dot"></span> Menjana</span>`}
       </div>
     `;
   }
@@ -969,23 +1029,24 @@
                     <div style="font-size:26px;font-weight:800;margin:10px 0 6px">Pembahagian Dividen 8%</div>
                     <div style="font-size:14px;opacity:0.8;margin-bottom:24px">daripada Lebih Surplus RM 1.42 Juta</div>
 
+                    ${(function() { const _t = D.motions[0].votes.ya + D.motions[0].votes.tidak + D.motions[0].votes.abstain; const _s = _t > 0 ? _t : 1; return `
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:580px;margin:0 auto">
                       <div style="background:rgba(16,185,129,0.2);padding:24px 14px;border-radius:14px;border:1px solid rgba(16,185,129,0.4)">
                         <div style="font-size:42px;font-weight:800;color:#10B981">${D.motions[0].votes.ya}</div>
                         <div style="font-size:14px;font-weight:700;letter-spacing:1px;margin-top:6px">YA</div>
-                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.ya / (D.motions[0].votes.ya + D.motions[0].votes.tidak + D.motions[0].votes.abstain) * 100)}%</div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.ya / _s * 100)}%</div>
                       </div>
                       <div style="background:rgba(239,68,68,0.2);padding:24px 14px;border-radius:14px;border:1px solid rgba(239,68,68,0.4)">
                         <div style="font-size:42px;font-weight:800;color:#EF4444">${D.motions[0].votes.tidak}</div>
                         <div style="font-size:14px;font-weight:700;letter-spacing:1px;margin-top:6px">TIDAK</div>
-                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.tidak / (D.motions[0].votes.ya + D.motions[0].votes.tidak + D.motions[0].votes.abstain) * 100)}%</div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.tidak / _s * 100)}%</div>
                       </div>
                       <div style="background:rgba(148,163,184,0.2);padding:24px 14px;border-radius:14px;border:1px solid rgba(148,163,184,0.4)">
                         <div style="font-size:42px;font-weight:800;color:#94A3B8">${D.motions[0].votes.abstain}</div>
                         <div style="font-size:14px;font-weight:700;letter-spacing:1px;margin-top:6px">KOSONG</div>
-                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.abstain / (D.motions[0].votes.ya + D.motions[0].votes.tidak + D.motions[0].votes.abstain) * 100)}%</div>
+                        <div style="font-size:11px;opacity:0.7;margin-top:4px">${Math.round(D.motions[0].votes.abstain / _s * 100)}%</div>
                       </div>
-                    </div>
+                    </div>`})()}
 
                     <div style="margin-top:30px;display:flex;justify-content:center;gap:14px">
                       <button class="btn btn-success btn-xl">${ICONS.check}<span>Tutup Undian</span></button>
@@ -1108,8 +1169,7 @@
     );
     $$("[data-route]").forEach(b =>
       b.addEventListener("click", () => {
-        state.view = b.dataset.route;
-        render();
+        navigate(b.dataset.route);
       })
 );
 
@@ -1229,14 +1289,13 @@
 
     // Countdown timer
     let secs = 768;
-    setInterval(() => {
+    safeInterval(() => {
       secs = Math.max(0, secs - 1);
       const t = $("#vp-timer");
       if (!t) return;
       const m = Math.floor(secs / 60).toString().padStart(2, "0");
       const s = (secs % 60).toString().padStart(2, "0");
       t.textContent = `${m}:${s}`;
-      if (secs === 0) clearInterval();
     }, 1000);
   }
 
@@ -1271,9 +1330,9 @@
 
         ${D.motions.slice(startIdx, startIdx + state.motionsPerPage).map(m => {
           const total = m.votes ? (m.votes.ya + m.votes.tidak + m.votes.abstain) : 0;
-          const yaPct = m.votes ? (m.votes.ya / total * 100) : 0;
-          const tkPct = m.votes ? (m.votes.tidak / total * 100) : 0;
-          const abPct = m.votes ? (m.votes.abstain / total * 100) : 0;
+          const yaPct = m.votes && total > 0 ? (m.votes.ya / total * 100) : 0;
+          const tkPct = m.votes && total > 0 ? (m.votes.tidak / total * 100) : 0;
+          const abPct = m.votes && total > 0 ? (m.votes.abstain / total * 100) : 0;
           const statusClass = m.status.includes('LULUS') ? 'passed' : m.status.includes('Gagal') ? 'failed' : m.status.includes('Diundi') ? 'active' : '';
           return `
             <div class="motion-card ${statusClass}">
@@ -1431,8 +1490,8 @@
             <div class="copilot-head">
               <div class="ch-avatar">${ICONS.sparkle}</div>
               <div style="flex:1">
-                <div class="ch-name">${agents.find(a => a.id === state.copilotAgent).title}</div>
-                <div class="ch-sub">${agents.find(a => a.id === state.copilotAgent).sub} · Aktif sekarang</div>
+                <div class="ch-name">${(agents.find(a => a.id === state.copilotAgent) || agents[0]).title}</div>
+                <div class="ch-sub">${(agents.find(a => a.id === state.copilotAgent) || agents[0]).sub} · Aktif sekarang</div>
               </div>
               <span class="badge success"><span class="dot"></span> Dalam Talian</span>
             </div>
@@ -1441,7 +1500,7 @@
               <div class="chat-msg ai">
                 <div class="av">${ICONS.sparkle}</div>
                 <div class="bubble">
-                  Selamat sejahtera Pn. Aishah 👋 Saya ${agents.find(a => a.id === state.copilotAgent).title}. Saya boleh membantu dengan analisis kewangan, semakan pematuhan, dan ringkasan minit mesyuarat. Ada apa yang ingin saya bantu?
+                  Selamat sejahtera Pn. Aishah 👋 Saya ${(agents.find(a => a.id === state.copilotAgent) || agents[0]).title}. Saya boleh membantu dengan analisis kewangan, semakan pematuhan, dan ringkasan minit mesyuarat. Ada apa yang ingin saya bantu?
                 </div>
               </div>
 
@@ -2069,10 +2128,10 @@
     $$(".pml-item", menu).forEach(el =>
       el.addEventListener("click", () => {
         const a = el.dataset.action;
-        if (a === "settings") { state.view = "settings"; render(); }
+        if (a === "settings") { navigate("settings"); }
         else if (a === "logout") {
           showToast("👋 Anda telah log keluar");
-          state.view = "login"; render();
+          navigate("login");
         } else {
           showToast("Ciri ini akan datang dalam versi penuh.");
         }
@@ -2169,9 +2228,8 @@
 
     $$(".search-result-item", results).forEach(el =>
       el.addEventListener("click", () => {
-        state.view = el.dataset.route;
         state.searchOpen = false;
-        render();
+        navigate(el.dataset.route);
         showToast(`Pergi ke ${el.dataset.route}`);
       })
     );
@@ -2181,18 +2239,15 @@
      REAL-TIME VOTE SIMULATOR
      ============================================================ */
   function startLiveVoteSim() {
-    setInterval(() => {
+    safeInterval(() => {
       if (state.view !== "voting" && state.view !== "agm-hall") return;
       if (state.liveVotes.ya + state.liveVotes.tidak + state.liveVotes.abstain >= state.liveVotes.total - 5) return;
-      // Random vote
       const r = Math.random();
       if (r < 0.75) state.liveVotes.ya += Math.floor(Math.random() * 3) + 1;
       else if (r < 0.92) state.liveVotes.tidak += 1;
       else state.liveVotes.abstain += 1;
 
-      // Update voting view if visible
       if (state.view === "voting") updateVotingCounter();
-      // Update hall view if visible
       if (state.view === "agm-hall") updateHallVoteCounter();
     }, 3500);
   }
@@ -2555,14 +2610,12 @@
     });
     $("#wiz-cancel")?.addEventListener("click", () => {
       state.wizardStep = 1;
-      state.view = "dashboard";
-      render();
+      navigate("dashboard");
     });
     $("#publish-agm")?.addEventListener("click", () => {
       showToast("🎉 AGM Ke-17 diterbitkan! Notis dihantar kepada 1,284 ahli.");
       state.wizardStep = 1;
-      state.view = "dashboard";
-      render();
+      navigate("dashboard");
     });
   }
 
@@ -3149,14 +3202,16 @@
      ROUTER
      ============================================================ */
   function render() {
+    clearAllIntervals();
+
     if (state.view === "login") {
-      // Hide app shell
       document.getElementById("app").innerHTML = `<main class="main" id="main"></main>`;
-      renderLogin();
+      safeRender(renderLogin);
       setActiveNav();
       return;
     }
-    renderLayout();
+    showLoading();
+    safeRender(renderLayout);
     const main = $("#main");
     const renderers = {
       dashboard: renderDashboard,
@@ -3174,10 +3229,28 @@
       roadmap: renderRoadmap,
     };
     const fn = renderers[state.view] || renderDashboard;
-    fn();
+    safeRender(fn);
   }
 
-  // First render
+  function navigate(view) {
+    state.view = view;
+    location.hash = "#/" + view;
+    render();
+  }
+
+  function handleHashChange() {
+    const hash = location.hash.replace("#/", "") || "login";
+    if (hash !== state.view) {
+      state.view = hash;
+      render();
+    }
+  }
+
+  window.addEventListener("hashchange", handleHashChange);
+
+  // Initialize from URL hash or default to login
+  const initView = location.hash.replace("#/", "") || "login";
+  state.view = initView;
   render();
   startLiveVoteSim();
 })();
