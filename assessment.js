@@ -12,16 +12,16 @@
     members: { label: "Saiz Ahli", max: 30, fn: (m) =>
       m < 300 ? 5 : m < 1000 ? 15 : m < 2000 ? 22 : 30 },
     mode: { label: "Mode AGM", max: 12, fn: (mode) =>
-      ({ physical: 5, online: 9, hybrid: 12 })[mode] || 5 },
-    attendance: { label: "Jangkaan Kehadiran", max: 18, fn: (ratio) =>
-      ratio < 0.3 ? 6 : ratio <= 0.5 ? 12 : 18 },
-    candidates: { label: "Calon Lembaga", max: 15, fn: (c) =>
-      c < 1 ? 3 : c <= 3 ? 5 : c <= 7 ? 10 : 15 },
-    motions: { label: "Usul / Resolusi", max: 12, fn: (n) =>
-      n <= 5 ? 4 : n <= 15 ? 8 : 12 },
-    process: { label: "Proses Semasa", max: 8, fn: (p) =>
-      ({ digital: 2, mixed: 5, manual: 8 })[p] || 5 },
-    managed: { label: "AGM Terurus", max: 5, fn: (y) => (y ? 5 : 0) },
+      ({ physical: 4, online: 9, hybrid: 12 })[mode] || 4 },
+    attendance: { label: "Jangkaan Kehadiran", max: 16, fn: (ratio) =>
+      ratio < 0.3 ? 5 : ratio <= 0.5 ? 10 : 16 },
+    candidates: { label: "Calon Lembaga", max: 12, fn: (c) =>
+      c < 1 ? 2 : c <= 3 ? 4 : c <= 7 ? 8 : 12 },
+    motions: { label: "Usul / Resolusi", max: 10, fn: (n) =>
+      n <= 5 ? 3 : n <= 15 ? 6 : 10 },
+    process: { label: "Proses Semasa", max: 10, fn: (p) =>
+      ({ digital: 3, mixed: 6, manual: 10 })[p] || 6 },
+    managed: { label: "AGM Terurus", max: 10, fn: (y) => (y ? 10 : 2) },
   };
 
   /* ---------- Packages ---------- */
