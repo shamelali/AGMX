@@ -11,8 +11,14 @@
   <meta property="og:title" content="AGMX · AGM Operating System">
   <meta property="og:description" content="Platform tadbir urus koperasi pintar. AI Copilot, e-voting, pematuhan automatik.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://agmx.vercel.app">
+  <meta property="og:url" content="https://agmx-project.vercel.app/">
+  <meta property="og:image" content="https://agmx-project.vercel.app/assets/enterprise/01-hero-og-banner.png">
+  <meta property="og:image:width" content="1376">
+  <meta property="og:image:height" content="768">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AGMX · AGM Operating System">
+  <meta name="twitter:description" content="Platform tadbir urus koperasi pintar. AI Copilot, e-voting, pematuhan automatik.">
+  <meta name="twitter:image" content="https://agmx-project.vercel.app/assets/enterprise/01-hero-og-banner.png">
   <title>AGMX · AGM Operating System — Tadbir Urus Koperasi Pintar</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B5394'/%3E%3Ctext x='50%25' y='52%25' text-anchor='middle' dominant-baseline='central' font-family='Arial' font-weight='800' font-size='28' fill='%23D4A017'%3EAG%3C/text%3E%3C/svg%3E">
   <link rel="manifest" href="manifest.json">
@@ -289,6 +295,25 @@
     .fc-icon.c4 { background: #DBEAFE; color: #1E40AF; }
     .fc-icon.c5 { background: #FEE2E2; color: #B91C1C; }
     .fc-icon.c6 { background: #EDE9FE; color: #7C3AED; }
+    .fc-img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      object-position: top;
+      border-radius: 12px;
+      border: 1px solid var(--c-border);
+      background: var(--c-surface);
+      margin-bottom: 16px;
+      display: block;
+      box-shadow: var(--sh-sm);
+    }
+    .hero-shot {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--c-border);
+      box-shadow: var(--sh-lg);
+      display: block;
+    }
     .feature-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
     .feature-card p { font-size: 14px; color: var(--c-text-2); line-height: 1.6; }
 
@@ -647,24 +672,7 @@
         </div>
         <div class="hero-visual reveal show reveal-delay-2 float">
           <div style="font-size:13px;font-weight:700;margin-bottom:16px;opacity:0.8">Dewan AGM — Paparan Langsung</div>
-          <div class="mock-dash">
-            <div class="md-row">
-              <span class="md-label">Kuorum</span>
-              <span class="md-value" style="color:var(--c-accent)">31.4%</span>
-            </div>
-            <div class="md-bar"><div class="fill" style="width:31.4%"></div></div>
-            <div class="md-quorum" style="margin-bottom:14px"><span class="dot"></span> 403 / 1,284 hadir — Syarat minimum dipenuhi</div>
-            <div class="md-row">
-              <span class="md-label">Undian M-001 (Dividen 8%)</span>
-              <span class="md-value" style="color:var(--c-success)">248 YA</span>
-            </div>
-            <div style="display:flex;gap:8px;font-size:13px;opacity:0.7;margin-bottom:14px">47 Tidak · 18 Kecuali · 313 Jumlah</div>
-            <div class="md-row">
-              <span class="md-label">Sesi Aktif</span>
-              <span class="md-value" style="color:#3B82F6">AG-06</span>
-            </div>
-            <div style="font-size:13px;opacity:0.7;margin-top:4px">Pembahagian Dividen & Lebih Surplus · AI Copilot Aktif</div>
-          </div>
+          <img class="hero-shot" src="assets/enterprise/03-dashboard.png" alt="AGMX Dashboard — Tadbir urus koperasi pintar" width="1376" height="768">
           <div style="display:flex;gap:8px;margin-top:16px;font-size:12px;opacity:0.6;flex-wrap:wrap">
             <span>✅ Pematuhan Skor 98/100</span>
             <span>·</span>
@@ -687,31 +695,37 @@
       </div>
       <div class="features-grid">
         <div class="feature-card reveal reveal-delay-1">
+          <img class="fc-img" src="assets/enterprise/04-agm-hall.png" alt="Dewan AGM maya" loading="lazy">
           <div class="fc-icon c1">📋</div>
           <h3>Pengurusan AGM End-to-End</h3>
           <p>Cipta, jadual, dan jalankan AGM dalam beberapa klik — notis, agenda, kuorum, minit, semuanya automatik.</p>
         </div>
         <div class="feature-card reveal reveal-delay-2">
+          <img class="fc-img" src="assets/enterprise/05-e-voting.png" alt="E-voting kalis ubah" loading="lazy">
           <div class="fc-icon c2">🗳️</div>
           <h3>E-Voting Kalis Ubah</h3>
           <p>Undian digital disulitkan AES-256 dengan rantai hash tidak boleh diubah. Keputusan automatik, tepat, dan telus.</p>
         </div>
         <div class="feature-card reveal reveal-delay-3">
+          <img class="fc-img" src="assets/enterprise/06-ai-copilot.png" alt="AI Governance Copilot" loading="lazy">
           <div class="fc-icon c3">🤖</div>
           <h3>AI Governance Copilot</h3>
           <p>4 ejen AI khusus — Pengerusi, Setiausaha, Pematuhan, Pengurus Soalan — bekerja 24/7 untuk memastikan AGM patuh.</p>
         </div>
         <div class="feature-card reveal reveal-delay-1">
+          <img class="fc-img" src="assets/enterprise/07-compliance.png" alt="Pematuhan automatik Akta Koperasi 1993" loading="lazy">
           <div class="fc-icon c4">🛡️</div>
           <h3>Pematuhan Automatik</h3>
           <p>Enjin BRule memastikan setiap langkah mematuhi Akta Koperasi 1993, GP14, GP14B, dan UUK koperasi anda.</p>
         </div>
         <div class="feature-card reveal reveal-delay-2">
+          <img class="fc-img" src="assets/enterprise/09-senior-mode.png" alt="Mod Warga Emas — One Screen One Action" loading="lazy">
           <div class="fc-icon c5">🧓</div>
           <h3>Mod Warga Emas</h3>
           <p>Antaramuka One Screen One Action dengan butang 60-80px, fon besar, dan teks kontras tinggi untuk ahli senior.</p>
         </div>
         <div class="feature-card reveal reveal-delay-3">
+          <img class="fc-img" src="assets/enterprise/08-digital-vault.png" alt="Digital Vault — rekod kalis ubah" loading="lazy">
           <div class="fc-icon c6">🔗</div>
           <h3>Digital Vault</h3>
           <p>Lejar digital kalis ubah dengan jejak audit lengkap. Setiap undian, usul, dan keputusan direkod secara kekal.</p>
