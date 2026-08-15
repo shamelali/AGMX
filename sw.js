@@ -1,11 +1,14 @@
-const CACHE = "agmx-v1";
+const CACHE = "agmx-v3";
 const PRECACHE = [
   "/",
   "/index.html",
   "/app.html",
   "/app.js",
+  "/app-en.html",
+  "/app-en.js",
   "/styles.css",
   "/data.js",
+  "/data-en.js",
   "/404.html",
   "/offline.html",
   "/manifest.json",
