@@ -45,6 +45,9 @@
     .lead-table td { font-size: 13px; }
     .fine { font-size: 12px; color: var(--c-text-3); line-height: 1.6; margin-top: 14px; }
     .pill-green { background: var(--c-success-100); color: #047857; }
+    .backend-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); }
+    .backend-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-warning); }
+    .backend-chip.live .dot { background: var(--c-success); box-shadow: 0 0 0 3px rgba(16,185,129,0.35); }
     .toast { position: fixed; bottom: 24px; right: 24px; background: var(--c-primary-700); color: #fff; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; box-shadow: var(--sh-lg); opacity: 0; transform: translateY(12px); transition: all 0.25s; z-index: 50; max-width: 340px; }
     .toast.show { opacity: 1; transform: translateY(0); }
     @media (max-width: 720px) { .as-card { padding: 18px; } }
@@ -54,7 +57,10 @@
   <header class="as-header">
     <div class="wrap">
       <div class="as-brand"><span class="ag-badge">AG</span> AGMX</div>
-      <a href="/" class="btn btn-ghost" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:#fff">← Kembali ke Laman Utama</a>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="backend-chip" id="backend-chip" title="Mod penyimpanan data"><span class="dot"></span><span id="backend-label">Backend…</span></span>
+        <a href="/" class="btn btn-ghost" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:#fff">← Kembali ke Laman Utama</a>
+      </div>
     </div>
   </header>
 
@@ -236,21 +242,30 @@
           <span class="badge">4 · Sebut Harga</span>
           <span class="badge">5 · AGM Dijadualkan</span>
         </div>
+        <a href="#" id="lead-cta" class="btn btn-accent btn-lg result-hidden" style="margin-top:18px;width:100%;justify-content:center">
+          Teruskan ke Sebut Harga &amp; Pembayaran →
+        </a>
+        <p class="fine" style="margin-top:8px"> Lalian kendiri (demo): terbitkan sebut harga, invois dan selesaikan pembayaran serta-merta — atau tunggu pasukan AGMX menghubungi anda.</p>
       </div>
 
       <!-- ============ LEAD PIPELINE (demo, localStorage) ============ -->
       <div class="as-card" style="margin-top:24px">
         <span class="section-tag">Demo — Pipeline Jualan</span>
-        <h2>Daftar Penilaian (Storage Pelayar)</h2>
-        <p class="sub">Setiap penilaian disimpan dalam localStorage pelayar ini. Dalam pengeluaran, data ini akan dihantar ke Supabase (jadual <code>agm_assessments</code> + <code>leads</code>).</p>
+        <h2>Daftar Penilaian</h2>
+        <p class="sub">Setiap penilaian disimpan melalui <code>api.js</code> — mod lalai ialah localStorage pelayar ini; mod Supabase diaktifkan dari <a href="leads.html">Lead Inbox</a> (RPC dalam <code>supabase/schema.sql</code>).</p>
         <div id="lead-table-wrap"></div>
-        <p class="fine" style="margin-top:10px">Fungsi ini adalah simulasi tempatan untuk demo aliran jualan. Tiada data dihantar ke pelayan.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+          <a href="leads.html" class="btn btn-ghost btn-sm">📊 Lead Inbox (Operasi)</a>
+          <a href="checkout.html" class="btn btn-ghost btn-sm">🧾 Aliran Pembayaran</a>
+        </div>
+        <p class="fine" style="margin-top:10px">Dalam mod demo, tiada data dihantar ke pelayan. Dalam pengeluaran, data dihantar ke Supabase (jadual <code>agm_assessments</code>) dengan RLS aktif.</p>
       </div>
     </div>
   </main>
 
   <div class="toast" id="toast"></div>
 
+  <script src="api.js"></script>
   <script src="assessment.js"></script>
 </body>
 </html>

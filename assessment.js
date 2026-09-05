@@ -97,10 +97,19 @@
     setTimeout(() => t.classList.remove("show"), 4200);
   }
 
-  /* ---------- Lead persistence (demo) ---------- */
+  /* ---------- Lead persistence (AGMX_API: local demo ↔ Supabase) ----------
+     Uses api.js when present. Legacy fallback keeps the page working
+     standalone (same localStorage key, same shape). */
+  const API = window.AGMX_API || null;
   const LEAD_KEY = "agmx_leads_v1";
-  function loadLeads() { try { return JSON.parse(localStorage.getItem(LEAD_KEY)) || []; } catch { return []; } }
-  function saveLead(lead) {
+
+  async function saveLead(lead) {
+    if (API) {
+      const stored = await API.submitAssessment(lead);
+      renderBackendChip();
+      return stored;
+    }
+    /* legacy path (no api.js) */
     const leads = loadLeads();
     lead.id = "LD-" + String(1000 + leads.length + 1).slice(1);
     lead.createdAt = new Date().toISOString();
@@ -110,15 +119,31 @@
     return lead;
   }
 
+  async function loadLeads() {
+    if (API) return API.listAssessments();
+    try { return JSON.parse(localStorage.getItem(LEAD_KEY)) || []; } catch { return []; }
+  }
+
+  async function renderBackendChip() {
+    if (!API) return;
+    try {
+      const st = await API.status();
+      const chip = document.getElementById("backend-chip");
+      if (!chip) return;
+      document.getElementById("backend-label").textContent = st.label;
+      chip.classList.toggle("live", !!st.ok);
+    } catch (e) { /* non-fatal */ }
+  }
+
   function renderLeadTable() {
-    const leads = loadLeads();
-    const wrap = $("lead-table-wrap");
-    if (!leads.length) {
-      wrap.innerHTML = '<p style="font-size:13px;color:var(--c-text-3)">Tiada penilaian lagi. Isi borang di atas untuk melihat aliran jualan.</p>';
-      return;
-    }
-    const rows = leads.map((l) =>
-      `<tr>
+    loadLeads().then((leads) => {
+      const wrap = $("lead-table-wrap");
+      if (!leads.length) {
+        wrap.innerHTML = '<p style="font-size:13px;color:var(--c-text-3)">Tiada penilaian lagi. Isi borang di atas untuk melihat aliran jualan.</p>';
+        return;
+      }
+      const rows = leads.map((l) =>
+        `<tr>
         <td><strong>${escapeHtml(l.coopName)}</strong><br><span style="color:var(--c-text-3);font-size:12px">${escapeHtml(l.coopReg || "—")} · ${escapeHtml(l.state)}</span></td>
         <td>${l.members.toLocaleString("ms-MY")} ahli</td>
         <td><span class="badge ${l.score >= 65 ? "danger" : l.score >= 35 ? "warning" : "success"}">${l.score}/100</span></td>
@@ -126,15 +151,16 @@
         <td><strong>${RM(l.quote)}</strong></td>
         <td><span class="badge success">${escapeHtml(l.stage)}</span></td>
       </tr>`).join("");
-    wrap.innerHTML =
-      `<div style="overflow-x:auto"><table class="table">
+      wrap.innerHTML =
+        `<div style="overflow-x:auto"><table class="table">
         <thead><tr><th>Koperasi</th><th>Ahli</th><th>Skor</th><th>Pakej</th><th>Anggaran</th><th>Status</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>`;
+    });
   }
 
   /* ---------- Main evaluation ---------- */
-  function evaluate(ev) {
+  async function evaluate(ev) {
     ev.preventDefault();
 
     const data = {
@@ -232,10 +258,14 @@
     $("result-card").classList.remove("result-hidden");
     $("result-card").scrollIntoView({ behavior: "smooth", block: "start" });
 
-    // Store lead (demo)
-    const lead = saveLead({
+    // Store lead (AGMX_API → local demo or Supabase)
+    const lead = await saveLead({
       coopName: data.coopName, coopReg: data.coopReg, state: data.state,
-      members: data.members, score: score.total, pkgName: pkg.name, quote: pkg.price,
+      members: data.members, agmDate: data.agmDate, mode: data.mode,
+      attendance: data.attendance, candidates: data.candidates, motions: data.motions,
+      process: data.process, managed: data.managed,
+      score: score.total, factors: score.factors,
+      pkgKey: pkg.key, pkgName: pkg.name, pkgPrice: pkg.price, quote: pkg.price,
       contactName: data.contactName, contactPhone: data.contactPhone, contactEmail: data.contactEmail,
     });
 
@@ -250,6 +280,13 @@
         <div style="font-size:14px;font-weight:700;color:var(--c-text);margin-top:2px">${escapeHtml(v)}</div>
       </div>`).join("");
 
+    /* self-serve path: continue straight to quote → invoice → payment */
+    const cta = document.getElementById("lead-cta");
+    if (cta) {
+      cta.href = "checkout.html?ref=" + encodeURIComponent(lead.id);
+      cta.classList.remove("result-hidden");
+    }
+
     $("lead-card").classList.remove("result-hidden");
     renderLeadTable();
     showToast(`Penilaian disimpan · Rujukan ${lead.id} · Pakej disarankan: ${pkg.name}`);
@@ -258,6 +295,7 @@
   /* ---------- Boot ---------- */
   document.addEventListener("DOMContentLoaded", () => {
     $("assessment-form").addEventListener("submit", evaluate);
+    renderBackendChip();
     renderLeadTable();
   });
 })();

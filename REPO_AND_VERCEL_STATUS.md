@@ -1,6 +1,12 @@
 # AGMX — Repo & Vercel Project Status
 
-*Compiled 2026-08-12 from the cloned repo + live checks*
+*Compiled 2026-08-12 from the cloned repo + live checks · Updated 2026-09-05*
+
+**Update 2026-09-05:** the routing fix is **deployed and verified live** —
+`/`, `/app.html` (real SPA shell), `/styles.css` (real 90 KB CSS) and `/robots.txt`
+all serve correct content from production. The failed-paths table below is kept
+for history. Sprint 2 money flow (api.js + checkout + leads + RPCs) added since;
+see `AGMX_V2_PLAN.md` §10.
 
 ---
 
