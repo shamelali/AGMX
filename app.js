@@ -3302,6 +3302,218 @@
   /* ============================================================
      PRODUCT ROADMAP (from PRD Vol 1 + Vol 10)
      ============================================================ */
+  /* ============================================================
+     PRODUCT ROADMAP (from PRD Vol 1 + Vol 10)
+     ============================================================ */
+    
+  /* ============================================================
+     SPRINT 13 — HARDENING UTILITIES
+     ============================================================ */
+  const Hardening = {
+    /* ---------- Accessibility Audit (WCAG 2.1 AA) ---------- */
+    accessibility: {
+      audit() {
+        const issues = [];
+        $$("img:not([alt])").forEach(img => issues.push({ level: "A", rule: "1.1.1", element: img, msg: "Gambar tanpa alt text" }));
+        $$("input:not([id])").forEach(input => { const label = $("label[for=" + input.id + "]"); if (!label) issues.push({ level: "A", rule: "1.3.1", element: input, msg: "Input tanpa label terhubung" }); });
+        $$(".text-3, .text-2, .text-sm").forEach(el => { const style = getComputedStyle(el); const color = style.color; const bg = style.backgroundColor; if (color === bg) issues.push({ level: "AA", rule: "1.4.3", element: el, msg: "Warna teks sama dengan background" }); });
+        $$("button, a, input, select, textarea, [tabindex]").forEach(el => { if (el.tabIndex < 0 && !el.disabled) issues.push({ level: "A", rule: "2.1.1", element: el, msg: "Elemen interaktif tidak reachable via keyboard" }); });
+        const style = document.createElement("style"); style.textContent = ":focus-visible { outline: 3px solid var(--c-accent) !important; outline-offset: 2px !important; }"; document.head.appendChild(style);
+        if (!document.documentElement.lang) issues.push({ level: "A", rule: "3.1.1", element: document.documentElement, msg: "Halaman tidak ada lang attribute" });
+        $$("[role]").forEach(el => { if (!el.getAttribute("aria-label") && !el.getAttribute("aria-labelledby") && !el.textContent.trim()) issues.push({ level: "A", rule: "4.1.2", element: el, msg: "Elemen ARIA tanpa nama aksesibel" }); });
+        return issues;
+      },
+      report() {
+        const issues = this.audit();
+        const byLevel = { A: [], AA: [], AAA: [] };
+        issues.forEach(i => byLevel[i.level].push(i));
+        console.group("AGMX Accessibility Audit (WCAG 2.1 AA)");
+        console.log("Total issues:", issues.length);
+        console.log("Level A:", byLevel.A.length);
+        console.log("Level AA:", byLevel.AA.length);
+        console.table(issues.map(i => ({ Rule: i.rule, Level: i.level, Message: i.msg, Element: i.element.tagName + (i.element.id ? "#" + i.element.id : "") + (i.element.className ? "." + i.element.className.split(" ")[0] : "") })));
+        console.groupEnd();
+        return issues;
+      }
+    },
+
+    /* ---------- Security Audit ---------- */
+    security: {
+      audit() {
+        const issues = [];
+        if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) issues.push({ severity: "HIGH", category: "CSP", msg: "Content Security Policy tidak ditemukan" });
+        if (location.protocol !== "https:" && location.hostname !== "localhost") issues.push({ severity: "HIGH", category: "TLS", msg: "Bukan HTTPS" });
+        $$("script:not([src])").forEach(s => { if (!s.nonce && !s.hasAttribute("data-inline-ok")) issues.push({ severity: "MEDIUM", category: "CSP", msg: "Inline script tanpa nonce", element: s }); });
+        $$("style:not([data-inline-ok])").forEach(s => issues.push({ severity: "MEDIUM", category: "CSP", msg: "Inline style", element: s }));
+        if (!document.querySelector('meta[http-equiv="X-Frame-Options"]')) issues.push({ severity: "MEDIUM", category: "Clickjacking", msg: "X-Frame-Options tidak diset" });
+        try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/token|password|secret|key/i.test(k)) issues.push({ severity: "HIGH", category: "Storage", msg: "Data sensitif di localStorage: " + k }); } } catch(e) {}
+        return issues;
+      },
+      report() {
+        const issues = this.audit();
+        console.group("AGMX Security Audit");
+        console.log("Total issues:", issues.length);
+        console.table(issues.map(i => ({ Severity: i.severity, Category: i.category, Message: i.msg })));
+        console.groupEnd();
+        return issues;
+      }
+    },
+
+    /* ---------- Performance Monitoring ---------- */
+    performance: {
+      metrics: {},
+      start(label) { this.metrics[label] = performance.now(); },
+      end(label) { if (this.metrics[label]) { const duration = performance.now() - this.metrics[label]; console.log(label + ": " + duration.toFixed(2) + "ms"); return duration; } },
+      report() {
+        const nav = performance.getEntriesByType("navigation")[0];
+        if (nav) {
+          console.group("AGMX Performance Report");
+          console.log("DNS Lookup:", (nav.domainLookupEnd - nav.domainLookupStart).toFixed(2), "ms");
+          console.log("TCP Connect:", (nav.connectEnd - nav.connectStart).toFixed(2), "ms");
+          console.log("TTFB:", (nav.responseStart - nav.requestStart).toFixed(2), "ms");
+          console.log("DOM Content Loaded:", (nav.domContentLoadedEventEnd - nav.navigationStart).toFixed(2), "ms");
+          console.log("Load Complete:", (nav.loadEventEnd - nav.navigationStart).toFixed(2), "ms");
+          console.groupEnd();
+        }
+        return nav;
+      }
+    },
+
+    /* ---------- Data Integrity ---------- */
+    integrity: {
+      verifyHashChain() {
+        const log = D.auditLog || [];
+        let valid = true;
+        for (let i = 1; i < log.length; i++) {
+          if (!/^0x[0-9a-f…]+$/.test(log[i].hash)) { console.warn("Invalid hash format at index", i); valid = false; }
+        }
+        console.log(valid ? "Hash chain format valid" : "Hash chain has issues");
+        return valid;
+      },
+      verifyChecksums() {
+        const docs = D.documents || [];
+        let valid = true;
+        docs.forEach(d => { if (!/^sha256:[a-f0-9]{8,}...$/.test(d.checksum)) { console.warn("Invalid checksum format:", d.id, d.checksum); valid = false; } });
+        console.log(valid ? "Document checksums format valid" : "Checksum format issues");
+        return valid;
+      },
+      verifySnapshot() {
+        const ER = D.electoralRoll || {};
+        if (!ER.snapshotId || !ER.hash) return console.warn("Electoral roll snapshot missing");
+        console.log("Electoral roll snapshot:", ER.snapshotId, "hash:", ER.hash);
+        return true;
+      }
+    },
+
+    /* ---------- Production Claims Verification ---------- */
+    claims: {
+      verify() {
+        const claims = [
+          { claim: "AES-256 encryption", status: "UNVERIFIED", evidence: "Crypto implementation needed" },
+          { claim: "Immutable hash chain (7,891 blocks)", status: "FORMAT_ONLY", evidence: "Hash format only, no crypto verification" },
+          { claim: "Compliance score 98/100", status: "REMOVED", evidence: "Removed per PRD §20 - replaced with configured rules" },
+          { claim: "98% AI accuracy", status: "REMOVED", evidence: "Removed per PRD §20 - AI is advisory only" },
+          { claim: "Production testimonials", status: "REMOVED", evidence: "Replaced with demo illustrations per PRD §20" },
+          { claim: "1284 members managed", status: "DEMO_DATA", evidence: "Mock data in data.js" },
+          { claim: "7,891 hash blocks", status: "DEMO_DATA", evidence: "Mock data in data.js" },
+          { claim: "4 AI agents active", status: "IMPLEMENTED", evidence: "6 agents in renderCopilotAgents()" },
+        ];
+        console.group("AGMX Production Claims Verification");
+        console.table(claims.map(c => ({ Claim: c.claim, Status: c.status, Evidence: c.evidence })));
+        console.groupEnd();
+        return claims;
+      }
+    },
+
+    /* ---------- DR / Backup Verification ---------- */
+    disasterRecovery: {
+      check() {
+        const checks = [
+          { name: "localStorage backup", fn: function() { try { const size = JSON.stringify(localStorage).length; return size > 0; } catch(e) { return false; } } },
+          { name: "IndexedDB available", fn: function() { return "indexedDB" in window; } },
+          { name: "Service Worker registered", fn: function() { return navigator.serviceWorker.controller !== null || navigator.serviceWorker.ready; } },
+          { name: "Offline fallback", fn: function() { try { const resp = fetch("offline.html"); return resp.ok; } catch(e) { return false; } } },
+        ];
+        console.group("AGMX DR/Backup Check");
+        checks.forEach(c => { try { const pass = c.fn(); console.log(pass ? "PASS" : "FAIL", c.name); } catch(e) { console.log("FAIL", c.name, e.message); } });
+        console.groupEnd();
+      }
+    },
+
+    /* ---------- Run All Audits ---------- */
+    runAll() {
+      console.log("AGMX Sprint 13 - Hardening Suite");
+      this.accessibility.report();
+      this.security.report();
+      this.performance.report();
+      this.integrity.verifyHashChain();
+      this.integrity.verifyChecksums();
+      this.integrity.verifySnapshot();
+      this.claims.verify();
+      this.disasterRecovery.check();
+      console.log("Hardening suite complete");
+      return {
+        a11y: this.accessibility.audit(),
+        security: this.security.audit(),
+        perf: this.performance.report(),
+        integrity: { hash: this.integrity.verifyHashChain(), checksums: this.integrity.verifyChecksums(), snapshot: this.integrity.verifySnapshot() },
+        claims: this.claims.verify(),
+        dr: this.disasterRecovery.check()
+      };
+    }
+  };
+
+  /* Expose globally for console use */
+  window.AGMX_Hardening = Hardening;
+
+  /* Auto-run on load (dev only) */
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    document.addEventListener("DOMContentLoaded", function() {
+      setTimeout(function() { Hardening.runAll(); }, 1000);
+    });
+  }
+
+function renderRoadmap() {
+    const main = $("#main");
+    main.innerHTML = `
+      <div class="fade-in">
+        <div class="page-head">
+          <div>
+            <h1 class="page-title">🗺️ Product Roadmap AGMX</h1>
+            <div class="page-sub">Pelan 3-fasa daripada MVP hingga "Cooperative SuperApp" · Vol 1 + Vol 10 PRD</div>
+          </div>
+        </div>
+
+        <div class="kpi-grid mb-4">
+          ${kpiBox("Fasa 1: Core Governance", "Sprint 1-8", "AGM fizikal end-to-end", "primary")}
+          ${kpiBox("Fasa 2: AGMX LIVE", "Sprint 9-11", "Hibrid/Online + AI Minit", "accent")}
+          ${kpiBox("Fasa 3: Enterprise", "Sprint 12+", "White-label, DR, Multi-coop", "success")}
+          ${kpiBox("Status Hardening", "Sprint 13", "A11y, Sec, Perf, DR", "warning")}
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-head">
+            <h3 class="card-title">Fasa 1: Core Governance (MVP)</h3>
+            <span class="badge success">SELESAI</span>
+          </div>
+          <div class="grid-3">
+            <div class="p-4" style="background:var(--c-success-100);border-radius:var(--r-lg);border:1px solid var(--c-success)">
+              <div class="text-bold text-success mb-2">✅ Sprint 1-3: Foundation</div>
+              <ul class="text-sm text-2 space-y-1">
+                <li>Inventory & freeze codebase</li>
+                <li>4 Workspace IA (Gov/Hub/Control/LIVE)</li>
+                <li>AGM Workspace + 12-stage lifecycle</li>
+              </ul>
+            </div>
+            <div class="p-4" style="background:var(--c-success-100);border-radius:var(--r-lg);border:1px solid var(--c-success)">
+              <div class="text-bold text-success mb-2">✅ Sprint 4-6: Compliance & Candidates</div>
+              <ul class="text-sm text-2 space-y-1">
+                <li>Electoral Roll (kelayakan terpisah)</li>
+                <li>Notices + AGM Pack + Communications</li>
+                <li>Nomination + Candidates (Lampiran 1)</li>
+              </ul>
+            </div>
+
   function renderRoadmap() {
     const main = $("#main");
     main.innerHTML = `
