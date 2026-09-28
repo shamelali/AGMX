@@ -1,5 +1,6 @@
 {
   "name": "agmx",
+  "buildTimestamp": "2026-09-28T03:44:04Z",
   "version": 2,
   "routes": [
     { "src": "/app", "dest": "/app.html" },
