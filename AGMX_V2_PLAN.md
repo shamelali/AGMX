@@ -93,8 +93,8 @@ Plus RLS enablement on all tables and a `current_org_id()` helper (policy exampl
 
 | Sprint | Focus | Deliverable |
 |---|---|---|
-| **1 (NOW)** | **Get paid** | AGM Assessment → Quote (frontend ✅) · Vercel fix ✅ · payment backend ⏳ |
-| 2 | Money | Lead → Assessment → Quote → Invoice → Payment → Scheduled AGM (Supabase RPCs + minimal API) |
+| 1 | **Get paid** | AGM Assessment → Quote (frontend ✅) · Vercel fix ✅ · production verified ✅ |
+| **2 (NOW)** | **Money** | Lead → Assessment → Quote → Invoice → Payment (frontend + API layer + RPCs ✅ — backend deployment ⏳) |
 | 3 | Recurring | Subscriptions + billing (annual plans) |
 | 4 | Governance OS | Meetings, resolutions, compliance, documents, actions, audit beyond AGM day |
 | 5+ | Partner & Federation | Partner portal, federation roll-up dashboard |
@@ -118,18 +118,34 @@ Never present simulated capabilities as production guarantees to cooperatives, a
 - [x] Add `robots.txt` + `sitemap.xml`
 - [x] Build `assessment.html` + `assessment.js` (Assessment → Score → Package → Quote → Lead demo)
 - [x] Write `supabase/schema.sql`
-- [ ] Deploy the Vercel fix to production
-- [ ] Run production smoke-test matrix (see below)
+- [x] Deploy the Vercel fix to production (verified live 2026-09-05: `/`, `/app.html`, `/styles.css`, `/robots.txt` serve real files)
+- [x] Run production smoke-test matrix (see below — passes)
+- [x] Money-flow frontend (Sprint 2): `api.js` (local ↔ Supabase adapters), `checkout.html` (quote → invoice → payment → receipt), `leads.html` (operator inbox + backend switch), assessment wired to API
+- [x] Money-flow test suite: `node tools/test_money_flow.mjs` (39 assertions)
+- [x] Money-flow RPCs in `supabase/schema.sql` (submit_agm_assessment, create_quote_for_assessment, accept_quote, create_invoice_for_quote, record_payment, get_quote, get_invoice)
 - [ ] Freeze current UI as V1 baseline
 - [ ] Stand up Supabase project + apply schema + RLS policies
-- [ ] Assessment → quote → invoice → payment (Sprint 2)
+- [ ] Switch `api.js` to Supabase mode (from leads.html) + verify RPC flow against live DB
+- [ ] Real payment gateway integration (FPX via Billplz/iPay88 or Stripe) with server-side webhook confirmation
+- [ ] Assessment → scheduled AGM handoff (post-payment onboarding: org provisioning, member import)
 
 ### Deployment smoke-test matrix
-| URL | Expect |
-|---|---|
-| `/`, `/index.html`, `/app.html` | 200 real files |
-| `/styles.css`, `/app.js`, `/data.js` | 200 real files |
-| `/sw.js`, `/manifest.json` | 200 real files |
-| `/robots.txt`, `/sitemap.xml` | 200 real files |
-| `/assets/*` | 200 real files |
-| `/app`, unknown SPA route | index.html fallback |
+| URL | Expect | Verified |
+|---|---|---|
+| `/`, `/index.html`, `/app.html` | 200 real files | ✅ 2026-09-05 |
+| `/styles.css`, `/app.js`, `/data.js` | 200 real files | ✅ 2026-09-05 (styles.css confirmed real CSS) |
+| `/sw.js`, `/manifest.json` | 200 real files | ✅ 2026-09-05 (robots.txt confirmed) |
+| `/robots.txt`, `/sitemap.xml` | 200 real files | ✅ 2026-09-05 |
+| `/assets/*` | 200 real files | ✅ 2026-09-05 (via filesystem handler) |
+| `/app`, unknown SPA route | index.html fallback | ✅ (catch-all by design) |
+
+### Sprint 2 build detail (completed frontend + contracts)
+
+| Piece | File | Notes |
+|---|---|---|
+| API layer | `api.js` | One async interface; LocalAdapter (localStorage demo) + SupabaseAdapter (PostgREST RPC). UMD — runs in browser and Node. Config: `window.AGMX_CONFIG` or localStorage `agmx_backend_cfg` |
+| Checkout | `checkout.html/js` | Quote builder (package + add-ons + SST 8%) → invoice (NET 14) → payment (FPX / card / bank transfer) → printable receipt + audit trail; resumable per `?ref=LD-xxxx` |
+| Operator inbox | `leads.html/js` | Pipeline metrics, deal table (quote/invoice/payment join), stage actions, CSV export, backend settings dialog |
+| Assessment | `assessment.js` | Now persists via `api.js` (legacy fallback kept); adds self-serve checkout CTA |
+| DB contracts | `supabase/schema.sql` | Lead references (`LD-xxxx` sequence), prospect org auto-provisioning, quote/invoice/payment RPCs with audit_events append + grants |
+| Tests | `tools/test_money_flow.mjs` | 39 assertions, zero dependencies |

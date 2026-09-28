@@ -4,6 +4,14 @@
   "routes": [
     { "src": "/app", "dest": "/app.html" },
     { "src": "/app.html", "dest": "/app.html" },
+    { "src": "/app-en", "dest": "/app-en.html" },
+    { "src": "/app-en.html", "dest": "/app-en.html" },
+    { "src": "/assessment", "dest": "/assessment.html" },
+    { "src": "/assessment.html", "dest": "/assessment.html" },
+    { "src": "/checkout", "dest": "/checkout.html" },
+    { "src": "/checkout.html", "dest": "/checkout.html" },
+    { "src": "/leads", "dest": "/leads.html" },
+    { "src": "/leads.html", "dest": "/leads.html" },
     { "src": "/offline.html", "dest": "/offline.html" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/sw.js", "dest": "/sw.js" },
@@ -25,7 +33,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; style-src 'unsafe-inline' 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; style-src 'unsafe-inline' 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
       ]
     }
   ]

@@ -25,7 +25,7 @@ create table public.organizations (
   state         text,
   zone          text,
   plan          text not null default 'starter',        -- starter | enterprise | platinum | unlimited
-  status        text not null default 'active',         -- active | trial | suspended
+  status        text not null default 'active',         -- active | trial | suspended | prospect
   settings      jsonb not null default '{}'::jsonb,     -- UUK ref, quorum %, senior-mode defaults...
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
@@ -57,6 +57,9 @@ create table public.organization_members (
 -- ------------------------------------------------------------
 -- COMMERCIAL
 -- ------------------------------------------------------------
+
+-- Human-readable lead references for agm_assessments (LD-0001, LD-0002, …)
+create sequence public.lead_ref_seq start with 1 increment by 1;
 create table public.plans (
   id          uuid primary key default gen_random_uuid(),
   code        text unique not null,          -- essential_agm | professional_agm | enterprise_agm | governance_os...
@@ -82,6 +85,7 @@ create table public.subscriptions (
 create table public.agm_assessments (
   id              uuid primary key default gen_random_uuid(),
   organization_id uuid references public.organizations(id) on delete set null,  -- null until converted
+  reference       text unique not null default ('LD-' || lpad(nextval('public.lead_ref_seq')::text, 4, '0')),
   coop_name       text not null,
   coop_reg        text,
   state           text,
@@ -374,7 +378,7 @@ create table public.documents (
 
 create table public.audit_events (              -- APPEND-ONLY
   id              uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations(id) on delete cascade,
+  organization_id uuid references public.organizations(id) on delete cascade,  -- null = system-level event (public lead capture)
   actor_id        uuid references auth.users(id),
   actor_name      text,
   action          text not null,               -- undian.cast | motion.created | minit.ai_draft ...
@@ -486,3 +490,297 @@ $$;
 -- Append-only guard for votes & audit_events:
 -- create trigger votes_append_only before update or delete on public.votes
 --   for each row execute function public.raise_append_only();
+
+-- ============================================================
+-- SPRINT 2 — MONEY FLOW RPCs (Lead → Quote → Invoice → Payment)
+-- Called by the browser api.js SupabaseAdapter (PostgREST).
+--
+-- Security model:
+--   * All functions are SECURITY DEFINER so they can write across
+--     RLS-protected tables with server-side validation.
+--   * submit_agm_assessment is the ONLY public (anon) entry point.
+--     PRODUCTION: front it with an edge function + CAPTCHA +
+--     rate limiting before exposing to the internet.
+--   * Quote/invoice/payment functions are for the checkout flow;
+--     grant them to `authenticated` and add operator-role checks
+--     (or move behind a server API) before real money moves.
+--   * Commercial mutations append to audit_events.
+-- ============================================================
+
+-- Public lead capture: insert an assessment from the marketing site.
+create or replace function public.submit_agm_assessment(p jsonb)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_id  uuid;
+  v_ref text;
+begin
+  insert into public.agm_assessments (
+    coop_name, coop_reg, state, members, agm_date, mode, expected_attendance,
+    candidates, motions, current_process, needs_managed,
+    contact_name, contact_phone, contact_email, complexity_score, status
+  ) values (
+    p->>'coop_name', p->>'coop_reg', p->>'state', (p->>'members')::int,
+    nullif(p->>'agm_date', '')::date,
+    coalesce(p->>'mode', 'hybrid'), (p->>'expected_attendance')::int,
+    coalesce((p->>'candidates')::int, 0), coalesce((p->>'motions')::int, 0),
+    coalesce(p->>'current_process', 'manual'), coalesce((p->>'needs_managed')::boolean, true),
+    p->>'contact_name', p->>'contact_phone', nullif(p->>'contact_email', ''),
+    coalesce((p->>'complexity_score')::int, 0), 'lead'
+  )
+  returning id, reference into v_id, v_ref;
+
+  insert into public.audit_events (organization_id, actor_name, action, entity_type, entity_id, payload, hash)
+  values (
+    null, 'public', 'assessment.submitted', 'agm_assessment', v_id::text,
+    jsonb_build_object('ref', v_ref, 'coop_name', p->>'coop_name',
+                       'score', coalesce((p->>'complexity_score')::int, 0)),
+    encode(sha256((v_ref || now()::text)::bytea), 'hex')   -- placeholder chain; see hash-chain note below
+  );
+  return jsonb_build_object('id', v_id, 'ref', v_ref);
+end $$;
+
+-- Auto-provision a prospect organization for a lead at quote time.
+create or replace function public.provision_prospect_org(p_assessment_id uuid)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare
+  a    public.agm_assessments;
+  v_org uuid;
+begin
+  select * into a from public.agm_assessments where id = p_assessment_id;
+  if not found then raise exception 'assessment % not found', p_assessment_id; end if;
+  if a.organization_id is not null then return a.organization_id; end if;
+
+  insert into public.organizations (slug, name, type, registration_no, state, plan, status, settings)
+  values (
+    lower(regexp_replace(a.coop_name, '[^a-z0-9]+', '-', 'gi')) || '-' || substr(md5(random()::text), 1, 6),
+    a.coop_name, 'cooperative', a.coop_reg, a.state, 'starter', 'prospect',
+    jsonb_build_object('source', 'assessment', 'assessment_id', p_assessment_id)
+  )
+  returning id into v_org;
+
+  update public.agm_assessments
+     set organization_id = v_org, status = 'quoted'
+   where id = p_assessment_id;
+  return v_org;
+end $$;
+
+-- Create a quote (with line items) for an assessment.
+-- p_items: [{"description": "...", "qty": 1, "unit_price": 3500.00}, …]
+create or replace function public.create_quote_for_assessment(
+  p_assessment_ref text,
+  p_items jsonb,
+  p_tax_rate numeric default 0.08
+)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  a       public.agm_assessments;
+  v_org   uuid;
+  v_quote uuid;
+  v_sub   numeric := 0;
+  v_tax   numeric := 0;
+  v_total numeric := 0;
+  v_num   text;
+  it      jsonb;
+begin
+  select * into a from public.agm_assessments where reference = p_assessment_ref;
+  if not found then raise exception 'assessment % not found', p_assessment_ref; end if;
+
+  v_org := public.provision_prospect_org(a.id);
+
+  select coalesce(max(substring(number from '\d+$')::int), 0) + 1
+    into v_num from public.quotes
+   where number like 'QT-' || to_char(now(), 'YYYY') || '-%';
+  v_num := 'QT-' || to_char(now(), 'YYYY') || '-' || lpad(v_num::text, 3, '0');
+
+  insert into public.quotes (organization_id, assessment_id, number, status, valid_until, subtotal, tax, total)
+  values (v_org, a.id, v_num, 'sent', current_date + 30, 0, 0, 0)
+  returning id into v_quote;
+
+  for it in select * from jsonb_array_elements(p_items) loop
+    insert into public.quote_items (quote_id, description, quantity, unit_price, line_total)
+    values (
+      v_quote, it->>'description',
+      greatest(coalesce((it->>'qty')::int, 1), 1),
+      (it->>'unit_price')::numeric,
+      greatest(coalesce((it->>'qty')::int, 1), 1) * (it->>'unit_price')::numeric
+    );
+    v_sub := v_sub + greatest(coalesce((it->>'qty')::int, 1), 1) * (it->>'unit_price')::numeric;
+  end loop;
+
+  v_tax   := round(v_sub * p_tax_rate, 2);
+  v_total := v_sub + v_tax;
+  update public.quotes set subtotal = v_sub, tax = v_tax, total = v_total where id = v_quote;
+
+  update public.agm_assessments set status = 'quoted' where id = a.id;
+
+  insert into public.audit_events (organization_id, actor_name, action, entity_type, entity_id, payload, hash)
+  values (v_org, 'checkout', 'quote.created', 'quote', v_num,
+          jsonb_build_object('lead', a.reference, 'total', v_total, 'items', jsonb_array_length(p_items)),
+          encode(sha256((v_num || now()::text)::bytea), 'hex'));
+
+  return jsonb_build_object(
+    'number', v_num, 'status', 'sent', 'subtotal', v_sub, 'tax', v_tax,
+    'tax_rate', p_tax_rate, 'total', v_total, 'valid_until', current_date + 30,
+    'lead_ref', a.reference,
+    'items', (select jsonb_agg(jsonb_build_object(
+                'description', qi.description, 'qty', qi.quantity,
+                'unit_price', qi.unit_price, 'line_total', qi.line_total) order by qi.description)
+              from public.quote_items qi where qi.quote_id = v_quote)
+  );
+end $$;
+
+-- Accept a quote (moves the lead to "Sebut Harga Diterima").
+create or replace function public.accept_quote(p_number text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare q public.quotes;
+begin
+  select * into q from public.quotes where number = p_number;
+  if not found then raise exception 'quote % not found', p_number; end if;
+  if q.status = 'accepted' then return public.get_quote(p_number); end if;
+
+  update public.quotes set status = 'accepted' where id = q.id;
+  update public.agm_assessments set status = 'quoted'
+   where id = q.assessment_id and status = 'contacted';
+
+  insert into public.audit_events (organization_id, actor_name, action, entity_type, entity_id, payload, hash)
+  values (q.organization_id, 'checkout', 'quote.accepted', 'quote', q.number,
+          jsonb_build_object('total', q.total),
+          encode(sha256((q.number || now()::text)::bytea), 'hex'));
+  return public.get_quote(p_number);
+end $$;
+
+-- Issue an invoice for an accepted quote (NET 14 payment terms).
+create or replace function public.create_invoice_for_quote(p_quote_number text)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  q      public.quotes;
+  v_inv  uuid;
+  v_num  text;
+begin
+  select * into q from public.quotes where number = p_quote_number;
+  if not found then raise exception 'quote % not found', p_quote_number; end if;
+  if q.status <> 'accepted' then raise exception 'quote % is not accepted', p_quote_number; end if;
+  if exists (select 1 from public.invoices where quote_id = q.id) then
+    return public.get_invoice((select number from public.invoices where quote_id = q.id limit 1));
+  end if;
+
+  select coalesce(max(substring(number from '\d+$')::int), 0) + 1
+    into v_num from public.invoices
+   where number like 'INV-' || to_char(now(), 'YYYY') || '-%';
+  v_num := 'INV-' || to_char(now(), 'YYYY') || '-' || lpad(v_num::text, 3, '0');
+
+  insert into public.invoices (organization_id, quote_id, number, status, issued_at, due_at, amount)
+  values (q.organization_id, q.id, v_num, 'unpaid', current_date, current_date + 14, q.total)
+  returning id into v_inv;
+
+  insert into public.audit_events (organization_id, actor_name, action, entity_type, entity_id, payload, hash)
+  values (q.organization_id, 'checkout', 'invoice.created', 'invoice', v_num,
+          jsonb_build_object('quote', q.number, 'amount', q.total, 'due', current_date + 14),
+          encode(sha256((v_num || now()::text)::bytea), 'hex'));
+
+  return public.get_invoice(v_num);
+end $$;
+
+-- Record a payment against an invoice.
+--   p_method: fpx | card | bank_transfer
+--   bank_transfer → payment status 'pending' (operator verifies later);
+--   fpx / card    → 'succeeded' immediately (in production this function
+--                   is only called AFTER gateway webhook confirmation).
+create or replace function public.record_payment(
+  p_invoice_number text,
+  p_method text,
+  p_reference text default null
+)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  inv     public.invoices;
+  v_pay   uuid;
+  v_ref   text;
+  v_org   uuid;
+begin
+  select * into inv from public.invoices where number = p_invoice_number;
+  if not found then raise exception 'invoice % not found', p_invoice_number; end if;
+  if inv.status = 'paid' then raise exception 'invoice % is already paid', p_invoice_number; end if;
+  if p_method not in ('fpx', 'card', 'bank_transfer') then
+    raise exception 'invalid payment method %', p_method;
+  end if;
+
+  v_org := inv.organization_id;
+  v_ref := coalesce(nullif(p_reference, ''),
+                    upper(p_method) || to_char(now(), 'YYYYMMDDHH24MISS'));
+
+  insert into public.payments (invoice_id, organization_id, method, reference, amount, status, paid_at)
+  values (inv.id, v_org, p_method, v_ref, inv.amount,
+          case when p_method = 'bank_transfer' then 'pending' else 'succeeded' end,
+          case when p_method = 'bank_transfer' then null else now() end)
+  returning id into v_pay;
+
+  if p_method <> 'bank_transfer' then
+    update public.invoices set status = 'paid', paid_at = now() where id = inv.id;
+    update public.agm_assessments set status = 'won'
+     where id = (select assessment_id from public.quotes where id = inv.quote_id);
+  end if;
+
+  insert into public.audit_events (organization_id, actor_name, action, entity_type, entity_id, payload, hash)
+  values (v_org, 'checkout',
+          case when p_method = 'bank_transfer' then 'payment.pending_verification' else 'payment.succeeded' end,
+          'payment', v_pay::text,
+          jsonb_build_object('invoice', inv.number, 'method', p_method, 'reference', v_ref, 'amount', inv.amount),
+          encode(sha256((v_ref || now()::text)::bytea), 'hex'));
+
+  return jsonb_build_object(
+    'id', v_pay, 'invoice_number', inv.number, 'lead_ref',
+    (select a.reference from public.agm_assessments a
+      join public.quotes q on q.assessment_id = a.id where q.id = inv.quote_id),
+    'method', p_method, 'reference', v_ref, 'amount', inv.amount,
+    'status', case when p_method = 'bank_transfer' then 'pending' else 'succeeded' end,
+    'paid_at', case when p_method = 'bank_transfer' then null else now() end,
+    'created_at', now()
+  );
+end $$;
+
+-- Read helpers for the checkout page (join items into the quote row).
+create or replace function public.get_quote(p_number text)
+returns jsonb language sql security definer set search_path = public stable as $$
+  select jsonb_build_object(
+    'number', q.number, 'status', q.status, 'subtotal', q.subtotal, 'tax', q.tax,
+    'total', q.total, 'valid_until', q.valid_until,
+    'lead_ref', a.reference,
+    'items', (select jsonb_agg(jsonb_build_object(
+                'description', qi.description, 'qty', qi.quantity,
+                'unit_price', qi.unit_price, 'line_total', qi.line_total) order by qi.description)
+              from public.quote_items qi where qi.quote_id = q.id)
+  )
+  from public.quotes q
+  left join public.agm_assessments a on a.id = q.assessment_id
+  where q.number = p_number;
+$$;
+
+create or replace function public.get_invoice(p_number text)
+returns jsonb language sql security definer set search_path = public stable as $$
+  select jsonb_build_object(
+    'number', i.number, 'quote_number', q.number, 'lead_ref', a.reference,
+    'amount', i.amount, 'status', i.status, 'issued_at', i.issued_at,
+    'due_at', i.due_at, 'paid_at', i.paid_at
+  )
+  from public.invoices i
+  left join public.quotes q on q.id = i.quote_id
+  left join public.agm_assessments a on a.id = q.assessment_id
+  where i.number = p_number;
+$$;
+
+-- Grants: lead capture is public; the rest require an authenticated session.
+-- PRODUCTION: wrap submit_agm_assessment with an edge function (CAPTCHA +
+-- rate limit) and add operator-role checks to the money-movement RPCs.
+grant execute on function public.submit_agm_assessment(jsonb)                    to anon, authenticated;
+grant execute on function public.create_quote_for_assessment(text, jsonb, numeric) to authenticated;
+grant execute on function public.accept_quote(text)                              to authenticated;
+grant execute on function public.create_invoice_for_quote(text)                  to authenticated;
+grant execute on function public.record_payment(text, text, text)                to authenticated;
+grant execute on function public.get_quote(text)                                 to authenticated;
+grant execute on function public.get_invoice(text)                               to authenticated;
+
+-- Operator read access for the Lead Inbox (authenticated users only;
+-- tighten to a staff role before production).
+create policy "assessments_staff_read" on public.agm_assessments
+  for select to authenticated using (true);
