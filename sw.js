@@ -6,6 +6,8 @@ const PRECACHE = [
   "/app.js",
   "/styles.css",
   "/data.js",
+  "/assessment.html",
+  "/assessment.js",
   "/pocketbase-client.js",
   "/login.js",
   "/404.html",
