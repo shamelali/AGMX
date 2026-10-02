@@ -45,9 +45,9 @@ AGMX/
 - **Serving region (edge):** `pdx1` (Portland) — `x-vercel-id: pdx1::...`
 - **Platform:** Vercel static (`@vercel/static` per `vercel.json`)
 
-### ✅ Live deployment status (as of 2026-10-01)
+### ✅ Live deployment status (as of 2026-10-02)
 
-The fix has been applied to `vercel.json` (commit `2197ef0`). The live deployment now correctly serves static assets.
+The fix has been applied to `vercel.json` (commit `2197ef0`). The live deployment now correctly serves static assets at **https://agmx-project.vercel.app/**.
 
 | Path | Expected | Live response |
 |---|---|---|
@@ -61,11 +61,12 @@ The fix has been applied to `vercel.json` (commit `2197ef0`). The live deploymen
 | `/robots.txt` | robots file | ✅ 200 |
 | `/sitemap.xml` | sitemap | ✅ 200 |
 | any unknown path | 404 page | ✅ 200 (custom 404) |
+| `/assets/*` | enterprise images | ✅ 200 |
 
 **Root cause previously:** `vercel.json` routes ended with the catch-all
 { "src": "/(.*)", "dest": "/index.html" } without a { "handle": "filesystem" } rule — so Vercel never served the real static files; every path not explicitly listed fell into the catch-all.
 
-**Fix applied:** Added `{ "handle": "filesystem" }` before the catch-all in `vercel.json` (see routes section). Now `/app.html`, `app.js`, `styles.css`, `data.js`, etc. are served correctly and the full 13-view app is live.
+**Fix applied:** Added `{ "handle": "filesystem" }` before the catch-all in `vercel.json` (see routes section). Removed the broken redirect to `agmx.vercel.app`. Now `/app.html`, `app.js`, `styles.css`, `data.js`, etc. are served correctly and the full 13-view app is live at **agmx-project.vercel.app**.
 
 ---
 
@@ -91,3 +92,17 @@ gold `#D4A017`, light `#F5F7FB`):
 | 05 | `05-e-voting.png` | ✅ 1.1 MB |
 | 06 | `06-ai-copilot.png` | ✅ 0.93 MB |
 | 07–10 | compliance, vault, senior-mode, mobile | ⏳ pending (rate-limited) |
+
+---
+
+## 5. Next steps (Sprint 1-2)
+
+- [x] Fix `vercel.json` (filesystem handler) — branch `fix/vercel-static-routing`
+- [x] Add `robots.txt` + `sitemap.xml`
+- [x] Build `assessment.html` + `assessment.js` (Assessment → Score → Package → Quote → Lead demo)
+- [x] Write `supabase/schema.sql`
+- [x] Deploy the Vercel fix to production
+- [x] Run production smoke-test matrix (all pass)
+- [ ] Freeze current UI as V1 baseline (tag `v1.0.0-ui-freeze`)
+- [ ] Stand up Supabase project + apply schema + RLS policies
+- [ ] Assessment → quote → invoice → payment (Sprint 2)
