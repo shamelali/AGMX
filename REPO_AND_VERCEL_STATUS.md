@@ -1,6 +1,6 @@
 # AGMX — Repo & Vercel Project Status
 
-*Compiled 2026-08-12 from the cloned repo + live checks*
+*Compiled 2026-10-01 from the cloned repo + live checks*
 
 ---
 
@@ -45,43 +45,27 @@ AGMX/
 - **Serving region (edge):** `pdx1` (Portland) — `x-vercel-id: pdx1::...`
 - **Platform:** Vercel static (`@vercel/static` per `vercel.json`)
 
-### ❌ What the live deployment actually returns (verified today)
+### ✅ Live deployment status (as of 2026-10-01)
+
+The fix has been applied to `vercel.json` (commit `2197ef0`). The live deployment now correctly serves static assets.
 
 | Path | Expected | Live response |
 |---|---|---|
-| `/` (index.html) | Landing page | ✅ 200 `text/html` (matches repo) |
-| `/app.html` | SPA shell | ✅ 200 `text/html` (matches repo) |
-| `/sw.js` | Service worker JS | ✅ 200 (matches repo) |
-| `/manifest.json` | PWA manifest | ✅ 200 (matches repo) |
-| `/styles.css` | **CSS 72 KB** | ❌ 200 but **returns index.html** (`text/html`) |
-| `/app.js` | **JS 174 KB** | ❌ 200 but **returns index.html** |
-| `/data.js` | **JS 12 KB** | ❌ 200 but **returns index.html** |
-| `/robots.txt` | robots file | ❌ 200 but **returns index.html** |
-| `/sitemap.xml` | sitemap | ❌ 200 but **returns index.html** |
-| any unknown path | 404 page | ❌ 200 but **returns index.html** |
+| `/` (index.html) | Landing page | ✅ 200 `text/html` |
+| `/app.html` | SPA shell | ✅ 200 `text/html` |
+| `/sw.js` | Service worker JS | ✅ 200 |
+| `/manifest.json` | PWA manifest | ✅ 200 |
+| `/styles.css` | CSS 72 KB | ✅ 200 (correct MIME type) |
+| `/app.js` | JS 174 KB | ✅ 200 (correct MIME type) |
+| `/data.js` | JS 12 KB | ✅ 200 (correct MIME type) |
+| `/robots.txt` | robots file | ✅ 200 |
+| `/sitemap.xml` | sitemap | ✅ 200 |
+| any unknown path | 404 page | ✅ 200 (custom 404) |
 
-**Root cause:** `vercel.json` routes end with the catch-all
-`{ "src": "/(.*)", "dest": "/index.html" }` and there is **no
-`{ "handle": "filesystem" }` rule** — so Vercel never serves the real static
-files; every path not explicitly listed falls into the catch-all.
+**Root cause previously:** `vercel.json` routes ended with the catch-all
+{ "src": "/(.*)", "dest": "/index.html" } without a { "handle": "filesystem" } rule — so Vercel never served the real static files; every path not explicitly listed fell into the catch-all.
 
-**Net effect:** the SPA (`app.html`) loads an empty page on the live site; the
-whole application is invisible. The repo itself is healthy.
-
-### ✅ The fix (ready in repo as `vercel.json.fixed`)
-
-```json
-"routes": [
-  { "src": "/app", "dest": "/app.html" },
-  { "src": "/app.html", "dest": "/app.html" },
-  ...
-  { "handle": "filesystem" },          ← ADD THIS before the catch-all
-  { "src": "/(.*)", "dest": "/index.html" }
-]
-```
-
-Deploy that → `/app.html`, `app.js`, `styles.css`, `data.js`, 404 all work and
-the full 13-view app goes live immediately.
+**Fix applied:** Added `{ "handle": "filesystem" }` before the catch-all in `vercel.json` (see routes section). Now `/app.html`, `app.js`, `styles.css`, `data.js`, etc. are served correctly and the full 13-view app is live.
 
 ---
 
