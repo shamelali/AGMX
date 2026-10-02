@@ -1,4 +1,4 @@
-const CACHE = "agmx-v3";
+const CACHE = "agmx-v4";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -6,6 +6,8 @@ const PRECACHE = [
   "/app.js",
   "/styles.css",
   "/data.js",
+  "/pocketbase-client.js",
+  "/login.js",
   "/404.html",
   "/offline.html",
   "/manifest.json",

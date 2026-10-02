@@ -4,6 +4,15 @@
 # Duplicate/legacy directory
 AGMX/
 
+# Worktrees created by ./worktree
+worktrees/
+
+# PocketBase local state + per-deployment config
+pb_data/
+pocketbase/pb_data/
+config.js
+config.local.js
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -20,3 +29,4 @@ Thumbs.db
 .env.local
 *.pdf
 *.xlsx
+__pycache__/
