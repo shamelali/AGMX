@@ -1,0 +1,26 @@
+name: check
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# NOTE: committing this file requires the git token to carry the
+# `workflow` scope. Until then, run the same checks locally:
+#     ./tools/check.sh
+# and install the hook:
+#     ln -sf ../../tools/check.sh .git/hooks/pre-commit
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Repository checks
+        # AGMX_SKIP_NET=1 — the live-host probe in section 5 needs
+        # network access to vercel.app and is skipped in CI.
+        run: AGMX_SKIP_NET=1 bash tools/check.sh
