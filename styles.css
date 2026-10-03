@@ -17,7 +17,6 @@
   --color-primary-500: #3B82F6;
   --color-primary-600: #2563EB;
   --color-primary-700: #1D4ED8;
-  --color-primary-700: #1D4ED8;
   --color-primary-800: #1E40AF;
   --color-primary-900: #1E3A8A;
 
@@ -46,14 +45,9 @@
   --color-danger-100: #FEE2E2;
   --color-danger-600: #DC2626;
 
-  /* Info/Info */
+  /* Info */
   --color-info: #3B82F6;
   --color-info-100: #DBEAFE;
-
-  /* Warning/Amber */
-  --color-warning: #F59E0B;
-  --color-warning-100: #FEF3C7;
-  --color-warning-600: #D97706;
 
   /* Surfaces */
   --color-background: #F8FAFC;
@@ -67,21 +61,17 @@
   --color-border-strong: #CBD5E1;
   --color-divider: #E2E8F0;
 
-  /* Text */
+  /* Text (verified: on-primary #fff 5.17:1, on-accent #000 5.9:1) */
   --color-foreground: #1E293B;
   --color-on-primary: #FFFFFF;
   --color-on-secondary: #000000;
   --color-on-accent: #000000;
   --color-on-destructive: #FFFFFF;
   --color-text: #1E293B;
-  --color-foreground: #1E293B;
   --color-text-2: #475569;
-  --color-text-3: #475569;
   --color-text-3: #94A3B8;
-  --color-muted-foreground: #475569;
   --color-muted: #E9EFF8;
   --color-muted-foreground: #475569;
-  --color-muted: #E9EFF8;
 
   /* Legacy compatibility */
   --c-primary: #2563EB;
@@ -109,30 +99,8 @@
   --c-text-2: #475569;
   --c-text-3: #94A3B8;
   --c-text-inv: #FFFFFF;
-  --c-accent: #EA580C;
-  --c-accent-100: #FFF7ED;
-  --c-accent-600: #EA580C;
-  --c-accent-ink: #EA580C;
-  --c-accent-100: #FFF7ED;
-  --c-success: #10B981;
-  --c-success-100: #D1FAE5;
-  --c-warning: #F59E0B;
-  --c-warning-100: #FEF3C7;
-  --c-danger: #DC2626;
-  --c-danger-100: #FEE2E2;
-  --c-info: #3B82F6;
-  --c-bg: #F8FAFC;
-  --c-surface: #FFFFFF;
-  --c-surface-2: #F8FAFC;
-  --c-border: #E2E8F0;
-  --c-border-strong: #CBD5E1;
-  --c-divider: #E2E8F0;
-  --c-text: #1E293B;
-  --c-text-2: #475569;
-  --c-text-3: #94A3B8;
-  --c-text-inv: #FFFFFF;
 
-  /* Status/Status Colors */
+  /* Status Colors */
   --c-success: #10B981;
   --c-success-100: #D1FAE5;
   --c-warning: #F59E0B;

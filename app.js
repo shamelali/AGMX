@@ -112,12 +112,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	renderNavLabels();
 	renderAgendaFilter();
 
-	// theme toggle
-	document.getElementById("theme-toggle").addEventListener("click", () => {
+	// theme toggle (optional — shell may not include it yet)
+	const themeToggle = document.getElementById("theme-toggle");
+	if (themeToggle) themeToggle.addEventListener("click", () => {
 		state.theme = state.theme === "dark" ? "light" : "dark";
 		document.body.setAttribute("data-theme", state.theme);
-		document.getElementById("theme-toggle").setAttribute("title", __("theme" + (state.theme === "dark" ? "Dark" : "Light")));
-		document.getElementById("theme-toggle").innerHTML = state.theme === "dark" ? "☀️" : "🌙";
+		themeToggle.setAttribute("title", __("theme" + (state.theme === "dark" ? "Dark" : "Light")));
+		themeToggle.textContent = state.theme === "dark" ? "Light" : "Dark";
 	});
 
 	// lang switch in header
@@ -137,8 +138,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
-	// senior mode toggle
-	document.getElementById("senior-toggle").addEventListener("click", () => {
+	// senior mode toggle (optional)
+	const seniorToggle = document.getElementById("senior-toggle");
+	if (seniorToggle) seniorToggle.addEventListener("click", () => {
 		state.seniorMode = !state.seniorMode;
 		document.body.classList.toggle("senior-mode", state.seniorMode);
 	});
