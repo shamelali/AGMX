@@ -13,6 +13,9 @@ pocketbase/pb_data/
 config.js
 config.local.js
 
+# PocketBase server binary (unzip pocketbase_0.40.4 archive into bin/)
+bin/pocketbase
+
 # OS files
 .DS_Store
 Thumbs.db

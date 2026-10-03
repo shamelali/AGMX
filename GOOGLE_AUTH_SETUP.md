@@ -90,7 +90,7 @@ Then load it **before** the client:
 
 ## 5. Test
 
-1. Start PocketBase: `./pocketbase serve --http=0.0.0.0:8090`
+1. Start PocketBase: `./bin/pocketbase serve --http=0.0.0.0:8090`
 2. Open `http://localhost:8090/_/` and confirm Google shows as enabled.
 3. In your app, click **Continue with Google**.
 4. You should be redirected to Google's consent screen, then back to the app

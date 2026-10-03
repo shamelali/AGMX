@@ -21,12 +21,11 @@ storage, self-hostable for data sovereignty.
 ## Quick start
 
 ```bash
-# 1. Get PocketBase
-wget https://github.com/pocketbase/pocketbase/releases/download/v0.22.21/pocketbase_0.22.21_linux_amd64.zip
-unzip pocketbase_0.22.21_linux_amd64.zip && chmod +x pocketbase
+# 1. Get PocketBase (binary lives in bin/ — pocketbase/ holds schema JSON)
+unzip pocketbase_0.40.4_linux_amd64.zip pocketbase -d bin/ && chmod +x bin/pocketbase
 
 # 2. Start it (first run prints a temp superuser password)
-./pocketbase serve --http=127.0.0.1:8090
+./bin/pocketbase serve --http=127.0.0.1:8090
 
 # 3. Create collections + seed data
 python3 tools/pb_migrate.py --url http://127.0.0.1:8090 \
@@ -115,7 +114,8 @@ docker run -d -p 8090:8090 \
   pocketbase/pocketbase:latest
 
 # systemd on a VPS
-./pocketbase serve --http=127.0.0.1:8090 --dir /srv/agmx-pb/pb_data
+# systemd on a VPS
+./bin/pocketbase serve --http=127.0.0.1:8090 --dir /srv/agmx-pb/pb_data
 ```
 
 Put it behind a reverse proxy with TLS. Back up by copying `pb_data/`.

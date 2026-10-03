@@ -16,7 +16,7 @@ Usage:
     python3 tools/pb_migrate.py --password <pw> --recreate
 
 Requires a PocketBase admin account. Create the first one with:
-    ./pocketbase superuser upsert EMAIL PASSWORD
+    ./bin/pocketbase superuser upsert EMAIL PASSWORD
 
 Why dependency order matters
 ----------------------------
